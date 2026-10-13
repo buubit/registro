@@ -179,3 +179,5 @@ Botão **Notas para a SED** na tela Salas. A nota não é mais dada aluno por al
 **Fluxo:** a SED bloqueia preenchimento automático (avisa "interações automatizadas" e apaga o que foi preenchido), então a digitação é manual, mas guiada. Em *Notas para a SED*, toque na turma e escolha a coluna (Missões, Produções ou, no 6º, Jovem CAS). Na SED, deixe Exibir em 100 e clique no título **Nome** para ordenar de A a Z: a lista do app fica na mesma ordem. Digite nota + Tab, nota + Tab… Tocar numa linha do app marca até onde já foi digitado.
 
 O caminho na SED é Diário de Classe → Avaliação → Lançamento, entrando pelo menu (pelo endereço direto, os filtros vêm vazios) → cartão da turma → *Notas e Edição* → escolher o bimestre → clicar no nome da avaliação → *Lançar Nota*.
+
+**Inglês (13/10/2026):** aba própria em *Notas para a SED*, com uma nota só por aluno: fez a atividade com "Apostila" no nome = 10; não fez a apostila mas fez qualquer outra = 5; nada = 0.

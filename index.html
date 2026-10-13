@@ -752,34 +752,52 @@ function telaPerfil(){
                  : `<ol class="timeline">${regs.map(linha).join("")}</ol>`)}</div>`;
 }
 
+/* Inglês: uma nota só. Fez a apostila = 10; fez qualquer outra = 5; nada = 0 */
+function notasING(bim){
+  return SALAS.filter(s => s.sigla==="ING").map(s => {
+    const ats = S.atividades.filter(a => a.salaId===s.id && bimDe(a)===bim);
+    const apo = ats.filter(a => semAc(a.titulo).includes("APOSTILA")), outras = ats.filter(a => !apo.includes(a));
+    const alunos = ALUNOS.filter(a => a.turma===s.turma).map(a => ({a, n:{i:
+      apo.some(at => fezComFoto(at.id, a.id)) ? 10 : outras.some(at => fezComFoto(at.id, a.id)) ? 5 : 0}}));
+    return {s, alunos, cols:[["i","Nota"]],
+      desc: `Apostila (10): ${apo.length ? apo.map(a=>esc(a.titulo)).join(", ") : "<b>nenhuma no app</b>"}<br>Outras (5): ${outras.map(a=>esc(a.titulo)).join(", ") || "—"}`};
+  }).filter(x => S.atividades.some(a => a.salaId===x.s.id && bimDe(a)===bim));
+}
+
 function telaSED(){
-  const bim = bimAtual(), salas = notasSED(bim), aberta = V.sedAberta;
-  const lista = (g, k) => g[k].map(a => esc(a.titulo)).join(", ");
-  return `<div class="lista">
+  const bim = bimAtual(), mat = V.sedMat || "OE", aberta = V.sedAberta;
+  const lista = g => g.map(a => esc(a.titulo)).join(", ");
+  const salas = mat==="ING" ? notasING(bim) : notasSED(bim).map(({s, grupo, alunos}) => ({s, alunos,
+    cols: [...(grupo.m.length?[["m","Missões"]]:[]), ...(grupo.p.length?[["p","Produções"]]:[]), ...(s.turma[0]==="6"?[["cas","Jovem CAS"]]:[])],
+    desc: (grupo.m.length ? `Missões (${grupo.m.length}): ${lista(grupo.m)}<br>` : "") + (grupo.p.length ? `Produções (${grupo.p.length}): ${lista(grupo.p)}` : "")}));
+  return `<div class="abas">
+      <button class="${mat==="OE"?"on":""}" data-a="sedmat" data-id="OE">Orientação de Estudos</button>
+      <button class="${mat==="ING"?"on":""}" data-a="sedmat" data-id="ING">Inglês</button></div>
+    <div class="lista sem-topo">
     <label style="margin-top:0">Bimestre</label>
     <div class="chips">${[1,2,3,4].map(b=>`<button class="chip ${bim===b?"on":""}" data-a="bimatual" data-id="${b}">${b}º</button>`).join("")}</div>
     <p class="dica">As atividades novas entram no bimestre marcado aqui.</p>
     ${salas.length ? `<div class="caixa" style="margin-top:14px">
       <p><b>Na SED:</b> abra a tela de notas da avaliação, mude <b>Exibir</b> para 100 e clique no título <b>Nome</b> da tabela para ficar em ordem alfabética. Aí ela bate linha por linha com a lista daqui.</p>
       <span class="nada">Clique na primeira caixa de nota e vá digitando o número e apertando <b>Tab</b>. Toque numa linha daqui para marcar até onde já digitou.</span></div>`
-    : `<div class="vazio"><p>Nenhuma atividade de OE no ${bim}º bimestre.</p></div>`}
-    ${salas.map(({s, grupo, alunos}) => {
-      const cols = [...(grupo.m.length?[["m","Missões"]]:[]), ...(grupo.p.length?[["p","Produções"]]:[]), ...(s.turma[0]==="6"?[["cas","Jovem CAS"]]:[])];
+    : `<div class="vazio"><p>Nenhuma atividade de ${mat==="ING"?"Inglês":"OE"} no ${bim}º bimestre.</p></div>`}
+    ${salas.map(({s, alunos, cols, desc}) => {
       const col = aberta===s.id && cols.some(c=>c[0]===V.sedCol) ? V.sedCol : cols[0][0];
       const ate = V.sedAte==null ? -1 : V.sedAte;
       return `
       <button class="ativ" data-a="sedsala" data-id="${s.id}">
-        <span class="txt"><b>${NOME_TURMA[s.turma]}</b>
-          <em>${grupo.m.length ? `Missões (${grupo.m.length}): ${lista(grupo,"m")}<br>` : ""}${grupo.p.length ? `Produções (${grupo.p.length}): ${lista(grupo,"p")}` : ""}</em></span>
+        <span class="txt"><b>${NOME_TURMA[s.turma]}</b><em>${desc}</em></span>
         <span class="frac"><i>${aberta===s.id?"fechar":"digitar"}</i></span></button>
       ${aberta===s.id ? `<div style="margin:-2px 0 14px">
-        <div class="chips" style="margin:4px 0 10px">${cols.map(([k,r])=>`<button class="chip ${col===k?"on":""}" data-a="sedcol" data-id="${k}">${r}</button>`).join("")}</div>
+        ${cols.length>1 ? `<div class="chips" style="margin:4px 0 10px">${cols.map(([k,r])=>`<button class="chip ${col===k?"on":""}" data-a="sedcol" data-id="${k}">${r}</button>`).join("")}</div>` : ""}
         ${alunos.map(({a, n}, i) => { const v = col==="cas" ? 10 : n[col];
           return `<button class="dig${i<=ate?" feito":""}" data-a="sedate" data-id="${i}">
             <span class="num">${i+1}</span><span class="nome">${esc(a.nome)}</span><b class="${v===0?"zero":""}">${v}</b></button>`; }).join("")}
         <p class="dica">${alunos.length} alunos. Se a SED tiver alguém a mais ou a menos, os nomes ao lado mostram onde desencontrou.</p>
       </div>` : ""}`; }).join("")}
-    <p class="dica">Tem foto = fez. Cada atividade vale 10 dividido pelo total da sala naquele grupo. Abaixo de ,8 arredonda para baixo. No 6º tudo conta como produção, e Jovem CAS é 10 para todos.</p>
+    <p class="dica">${mat==="ING"
+      ? "Tem foto = fez. Uma nota só: fez a apostila = 10; não fez a apostila mas fez qualquer outra = 5; não fez nada = 0. A apostila é a atividade com \"Apostila\" no nome."
+      : "Tem foto = fez. Cada atividade vale 10 dividido pelo total da sala naquele grupo. Abaixo de ,8 arredonda para baixo. No 6º tudo conta como produção, e Jovem CAS é 10 para todos."}</p>
   </div>`;
 }
 
@@ -913,6 +931,7 @@ document.addEventListener("click", e => {
     case "atbim": atividade(V.atv).bim = parseInt(id); salvar(); aviso("Bimestre trocado."); render(); break;
     case "sedsala": ir({sedAberta: V.sedAberta===id ? null : id, sedCol:null, sedAte:null}); break;
     case "sedcol": ir({sedCol:id, sedAte:null}); break;
+    case "sedmat": ir({sedMat:id, sedAberta:null, sedCol:null, sedAte:null}); break;
     case "sedate": { const i = parseInt(id); ir({sedAte: V.sedAte===i ? i-1 : i}); break; }
     case "csv": exportarCSV(); break;
     case "tudo": exportarTudo(); break;
