@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Lançar notas</title>
+<style>
+body{--tinta:#14213D;--papel:#FCFBF7;--borda:#E3E7EE;--cinza:#6B7689;--caneta:#D0311C;background:var(--papel);color:var(--tinta);
+  font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;max-width:640px;margin:0 auto;padding:32px 16px;line-height:1.55}
+h1{font-size:22px;margin:0 0 6px}p,li{font-size:15px}.sub{color:var(--cinza);margin-top:0}
+.fav{display:inline-block;margin:18px 0;padding:14px 22px;background:var(--tinta);color:#fff;border-radius:12px;font-weight:800;text-decoration:none;font-size:16px;cursor:grab}
+ol{padding-left:20px}li{margin-bottom:8px}
+button{font:inherit;font-size:13px;padding:8px 14px;border:1px solid var(--borda);background:#fff;border-radius:9px;color:var(--tinta);cursor:pointer}
+.caixa{background:#fff;border:1px solid var(--borda);border-radius:12px;padding:14px 16px;margin-top:22px}
+b{font-weight:700}
+</style>
+</head>
+<body>
+<h1>Lançar notas</h1>
+<p class="sub">Favorito que preenche as notas de OE na SED com o código do app Registro.</p>
+
+<a class="fav" id="fav" href="#">Lançar notas</a>
+
+<ol>
+  <li><b>Arraste o botão azul</b> para a barra de favoritos. Se ela estiver escondida: <b>Ctrl+Shift+B</b>.</li>
+  <li>No celular, abra o app → <b>Notas para a SED</b> → <b>Enviar código para o PC</b>. Mande para você mesmo no WhatsApp e copie o texto no PC.</li>
+  <li>Na SED, crie a avaliação (missões, produções ou Jovem CAS) e abra a tela de notas dela.</li>
+  <li>Clique em <b>Lançar notas</b> e cole o código. Da segunda turma em diante é só clicar e dar OK, porque o código fica guardado.</li>
+  <li>Confira e clique em <b>Salvar Notas</b>. O favorito nunca salva sozinho.</li>
+</ol>
+<p>As caixas preenchidas ficam verdes. Os alunos que ele não encontrou no app ficam com a linha amarela e a nota em branco. Na avaliação Jovem CAS, todo mundo recebe 10 e você não precisa colar código.</p>
+
+<div class="caixa">
+  <p style="margin-top:0">Arrastar não funcionou? Crie um favorito qualquer, edite e cole isto no campo de endereço (URL):</p>
+  <button id="copiar">Copiar o código do favorito</button> <span id="ok"></span>
+</div>
+
+<script type="text/plain" id="fonte">
+(()=>{
+const N=s=>String(s).normalize('NFD').replace(/[̀-ͯ]/g,'').toUpperCase().replace(/[^A-Z ]/g,' ').replace(/\s+/g,' ').trim();
+const corpo=document.body.innerText;
+const mt=corpo.match(/Turma:\s*(\d)\D{0,4}Ano\s+([A-Z])\b/i);
+if(!mt){alert('Não achei a turma nesta tela. Abra a tela de notas de uma avaliação na SED.');return;}
+const turma=mt[1]+mt[2].toUpperCase();
+const nomeAv=((corpo.match(/Nome:\s*([^\n]+)/)||[])[1]||'').trim();
+const na=N(nomeAv);
+let cat=/JOVEM|\bCAS\b/.test(na)?'cas':na.includes('MISS')?'m':na.includes('PROD')?'p':null;
+if(!cat){const r=prompt('A avaliação "'+nomeAv+'" é de missões ou de produções? Digite m ou p:','');if(!r)return;cat=r.trim().toLowerCase()[0];if(cat!=='m'&&cat!=='p')return;}
+const rotulo=cat==='cas'?'Jovem CAS':cat==='m'?'missões':'produções';
+let notas=null;
+if(cat!=='cas'){
+  const K='lancarNotasSED';let d=null;
+  try{d=JSON.parse(localStorage.getItem(K));}catch(e){}
+  const ent=prompt(d?'Código de '+d.d+' ('+d.b+'º bimestre) já guardado.\nCole um novo, ou deixe vazio e dê OK para usar esse:':'Cole o código copiado do app Registro:','');
+  if(ent===null)return;
+  if(ent.trim()){try{d=JSON.parse(ent.trim().replace(/^SED1:/,''));if(!d.t)throw 0;localStorage.setItem(K,JSON.stringify(d));}catch(e){alert('Código inválido. Copie de novo no app.');return;}}
+  if(!d){alert('Sem código.');return;}
+  const bs=[...document.querySelectorAll('select')].find(s=>/Bimestre/.test(s.innerText));
+  const bv=bs?parseInt(bs.value):0;
+  if(bv&&bv!==d.b&&!confirm('Esta avaliação é do '+bv+'º bimestre, mas o código é do '+d.b+'º. Continuar mesmo assim?'))return;
+  const t=d.t[turma];
+  if(!t||!t[cat]){alert('O código não tem '+rotulo+' do '+turma[0]+'º '+turma[1]+'.'+(turma[0]==='6'&&cat==='m'?' No 6º tudo conta como produções.':''));return;}
+  notas=new Map(t.n.map((n,i)=>[N(n),t[cat][i]]));
+}
+const sel=document.querySelector('select[name$="_length"]');
+if(sel&&sel.value!=='100'){sel.value='100';sel.dispatchEvent(new Event('change',{bubbles:true}));}
+const busca=document.querySelector('.dt-search input');
+if(busca&&busca.value){busca.value='';busca.dispatchEvent(new Event('input',{bubbles:true}));}
+setTimeout(()=>{
+  const set=Object.getOwnPropertyDescriptor(HTMLInputElement.prototype,'value').set;
+  const chaves=notas?[...notas.keys()]:[];const usadas=new Set();
+  const achar=n=>{if(notas.has(n))return n;const p=n.split(' ');const c=chaves.filter(k=>{const q=k.split(' ');return q[0]===p[0]&&q[q.length-1]===p[p.length-1];});return c.length===1?c[0]:null;};
+  let ok=0;const falta=[];
+  document.querySelectorAll('#tableDiarioClasse tbody tr').forEach(tr=>{
+    const inp=tr.querySelector('input.nota,input[type=number]');if(!inp)return;
+    const cel=[...tr.cells].filter(c=>!c.contains(inp)).map(c=>c.innerText.trim()).filter(x=>/[A-Za-z]{3}/.test(x)&&!/^(Ativo|Inativo|Transferido|Remanejado)/i.test(x)).sort((a,b)=>b.length-a.length)[0];
+    if(!cel)return;
+    let v;
+    if(cat==='cas')v=10;else{const k=achar(N(cel));if(k){usadas.add(k);v=notas.get(k);}}
+    if(v==null){tr.style.background='#FFF3B0';inp.style.background='#FFF3B0';falta.push(cel);return;}
+    inp.focus();set.call(inp,String(v));
+    inp.dispatchEvent(new Event('input',{bubbles:true}));inp.dispatchEvent(new Event('change',{bubbles:true}));inp.blur();
+    inp.style.background='#E3F6EA';ok++;
+  });
+  const sobra=chaves.filter(k=>!usadas.has(k));
+  alert(turma[0]+'º '+turma[1]+' · '+rotulo+'\n\n'+ok+' notas preenchidas (verde).'
+    +(falta.length?'\n\nNão achei no app, ficaram em branco (amarelo):\n- '+falta.join('\n- '):'')
+    +(notas&&sobra.length?'\n\nEstão no app mas não nesta tela:\n- '+sobra.join('\n- '):'')
+    +'\n\nConfira e clique em Salvar Notas.');
+},500);
+})();
+</script>
+<script>
+const fonte = document.getElementById("fonte").textContent.trim();
+const url = "javascript:" + encodeURIComponent(fonte);
+document.getElementById("fav").href = url;
+document.getElementById("fav").onclick = e => { e.preventDefault(); alert("Arraste este botão para a barra de favoritos em vez de clicar."); };
+document.getElementById("copiar").onclick = () => navigator.clipboard.writeText(url)
+  .then(() => document.getElementById("ok").textContent = "Copiado.");
+</script>
+</body>
+</html>

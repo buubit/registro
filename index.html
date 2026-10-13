@@ -1,0 +1,958 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#14213D">
+<title>Registro</title>
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icone-192.png">
+<style>
+@font-face{font-family:x;src:local(system-ui)}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+body{--tinta:#14213D;--papel:#FCFBF7;--pauta:#D9E2F0;--caneta:#D0311C;--verde:#1E6F50;--ambar:#E8A33D;
+  --cinza:#6B7689;--borda:#E3E7EE;background:var(--papel);color:var(--tinta);
+  font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;overscroll-behavior:none}
+#tela{display:flex;flex-direction:column;height:100dvh;max-width:520px;margin:0 auto}
+header{display:flex;align-items:center;gap:10px;padding:calc(12px + env(safe-area-inset-top)) 16px 12px;background:var(--tinta);color:#fff;flex:0 0 auto}
+header h1{font-size:17px;font-weight:800;flex:1;line-height:1.2}
+.marca{font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:1.4px;color:#7E93BC}
+.voltar{background:none;border:none;color:#fff;font-size:24px;cursor:pointer;line-height:1;padding:0 4px 0 0}
+.acao{border:1px solid rgba(255,255,255,.3);background:none;color:#C9D6EC;font-size:11px;font-weight:600;padding:6px 11px;border-radius:999px}
+main{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch}
+.lista,.form,.captura,.perfil{padding:16px 16px 28px}
+h2.serie{font-size:12.5px;font-weight:800;text-transform:uppercase;letter-spacing:1.1px;margin:20px 0 10px;display:flex;align-items:center;gap:8px}
+h2.serie:first-child{margin-top:0}
+h2.serie span{font-size:11px;font-weight:500;text-transform:none;letter-spacing:0;color:var(--cinza)}
+.ponto{width:9px;height:9px;border-radius:3px}.ponto.ing{background:var(--caneta)}.ponto.oe{background:var(--tinta)}
+.grade2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.cartao{text-align:left;background:#fff;border:1px solid var(--borda);border-radius:14px;padding:13px 12px;display:flex;flex-direction:column;font:inherit;color:inherit}
+.cartao .letra{font-size:24px;font-weight:800;line-height:1}
+.cartao .qtd{font-size:10.5px;color:var(--cinza);margin-top:5px}
+.cartao .pend{margin-top:8px;font-size:10px;font-weight:700;color:var(--caneta);border-top:1px dashed var(--pauta);padding-top:7px}
+.etiqueta{display:inline-block;background:var(--tinta);color:#fff;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;padding:5px 9px;border-radius:6px}
+.cabeca{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
+.link{background:none;border:none;font:inherit;font-size:12px;font-weight:600;color:var(--caneta)}
+input,textarea{width:100%;padding:12px 14px;border:1px solid var(--borda);border-radius:10px;font:inherit;font-size:15px;background:#fff;color:var(--tinta)}
+label{display:block;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--cinza);margin:16px 0 7px}
+.chips{display:flex;flex-wrap:wrap;gap:7px}.chips.col{flex-direction:column;flex-wrap:nowrap}
+.chip{padding:10px 13px;border:1px solid var(--borda);background:#fff;border-radius:10px;font:inherit;font-size:13px;color:var(--tinta);text-align:left}
+.chip.largo{display:flex;align-items:center;justify-content:space-between;width:100%;gap:8px}
+.chip.on{background:var(--tinta);color:#fff;border-color:var(--tinta)}
+.chip b{font-weight:600}
+.tag{font-size:9.5px;font-weight:800;letter-spacing:.6px;padding:3px 7px;border-radius:5px;color:#fff;flex:0 0 auto}
+.tag.ing{background:var(--caneta)}.tag.oe{background:var(--tinta)}
+.sub{font-size:10.5px;color:var(--cinza);font-weight:400}
+.chip.on .sub{color:#B9C7DE}
+.principal{margin-top:18px;width:100%;padding:16px;background:var(--tinta);color:#fff;border:none;border-radius:12px;font:inherit;font-size:15px;font-weight:800}
+.principal[disabled]{background:#C3CAD6}
+.dica{margin-top:12px;font-size:12px;line-height:1.5;color:var(--cinza)}
+.busca{margin-bottom:10px}
+.linha{display:flex;align-items:center;gap:8px;border-bottom:1px solid var(--pauta)}
+.linha .parte{flex:1;display:flex;align-items:center;gap:11px;padding:11px 4px;background:none;border:none;font:inherit;color:inherit;text-align:left}
+.linha.fora{opacity:.6}.linha.fora .nome{text-decoration:line-through}
+.num{font-family:ui-monospace,monospace;font-size:11px;color:var(--cinza);width:22px;flex:0 0 auto}
+.av{width:30px;height:30px;flex:0 0 auto;border-radius:9px;background:var(--tinta);color:#fff;font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center}
+.nome{flex:1;font-size:13.5px;line-height:1.25}
+.quando{font-size:10px;color:var(--cinza)}
+.media{font-size:16px;font-weight:800}.media.vazia{color:#C3CAD6;font-weight:500}
+.saiu{background:#FBF0EE;border:1px solid #EEC7C0;color:var(--caneta);font:inherit;font-size:10.5px;font-weight:700;padding:7px 11px;border-radius:8px;text-transform:uppercase;letter-spacing:.5px}
+.saiu.volta{background:#EAF5EF;border-color:#B4DCC7;color:var(--verde)}
+.caixa{background:#fff;border:1px solid var(--borda);border-radius:12px;padding:12px;margin-bottom:14px;display:flex;flex-direction:column;gap:8px}
+.caixa p{font-size:12px;color:var(--cinza)}
+.caixa .nada{font-size:11.5px;color:#A6AEBC;line-height:1.45}
+.juntos{display:flex;gap:7px}.juntos input{flex:1}
+.add{width:48px;border:none;border-radius:10px;background:var(--tinta);color:#fff;font-size:22px;flex:0 0 auto}
+.faixa{background:var(--tinta);color:#fff;border-radius:12px;padding:12px 14px;display:flex;flex-direction:column;gap:3px;margin-bottom:13px}
+.faixa strong{font-size:15px}.faixa span{font-size:11.5px;color:#A9BBD6}
+.faixa .prog{margin-top:4px;font-weight:600;color:var(--ambar)}
+.grade3{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.toque{position:relative;height:76px;background:#fff;border:1px solid var(--borda);border-radius:12px;display:flex;flex-direction:column;align-items:flex-start;justify-content:flex-end;padding:8px;font:inherit;color:inherit;text-align:left}
+.toque .num{position:absolute;top:7px;left:8px}
+.curto{font-size:11.5px;font-weight:600;line-height:1.15}
+.pgs{font-size:9.5px;font-weight:700;color:var(--verde)}
+.toque.ok{background:#EAF5EF;border-color:#B4DCC7}
+.toque.falta{background:#FBF0EE;border-color:#EEC7C0}.pgs.falta{color:var(--caneta)}.pgs.atr{color:#A8741C}
+.fila{width:100%;display:flex;align-items:center;gap:10px;background:#fff;border:1px solid var(--borda);border-radius:12px;padding:13px;margin-bottom:8px;font:inherit;color:inherit;text-align:left}
+.fila .txt{flex:1;display:flex;flex-direction:column;gap:2px}
+.fila b{font-size:14px}.fila em{font-style:normal;font-size:11px;color:var(--cinza)}
+.contador{font-size:19px;font-weight:800;color:var(--caneta)}
+#pilha{display:flex;flex-direction:column;height:100%}
+.visor{flex:1;background:#0E1626;position:relative;display:flex;align-items:center;justify-content:center;min-height:200px}
+.visor img{position:absolute;inset:0;width:100%;height:100%;object-fit:contain}
+.selo-aluno{position:absolute;left:0;right:0;bottom:0;padding:14px;background:linear-gradient(transparent,rgba(0,0,0,.78));color:#fff}
+.selo-aluno b{display:block;font-size:16px}.selo-aluno span{font-size:11px;opacity:.85}
+.atraso{display:inline-block;margin-top:6px;background:var(--ambar);color:#2A1E05;font-size:10px;font-weight:700;padding:3px 7px;border-radius:5px;text-transform:uppercase;letter-spacing:.4px}
+.paginas{position:absolute;top:10px;right:10px;display:flex;gap:5px}
+.paginas button{width:26px;height:26px;border-radius:8px;border:none;background:rgba(255,255,255,.28);color:#fff;font:inherit;font-size:11px}
+.paginas button.on{background:#fff;color:var(--tinta);font-weight:700}
+.rodape-nota{padding:10px 12px calc(14px + env(safe-area-inset-bottom));border-top:1px solid var(--borda);flex:0 0 auto;background:var(--papel)}
+.contagem{text-align:center;font-size:10.5px;color:var(--cinza);margin-bottom:8px;text-transform:uppercase;letter-spacing:.8px}
+.teclado{display:grid;grid-template-columns:repeat(6,1fr);gap:6px}
+.teclado button{padding:15px 0;border:1px solid var(--borda);background:#fff;border-radius:10px;font:inherit;font-size:17px;font-weight:800;color:var(--tinta)}
+.teclado button:active{background:var(--tinta);color:#fff}
+.teclado .meio{font-size:12px}.teclado .meio.on{background:var(--caneta);color:#fff;border-color:var(--caneta)}
+.capa{display:flex;align-items:center;gap:12px;margin-bottom:14px}
+.av.g{width:48px;height:48px;border-radius:14px;font-size:15px}
+.capa strong{display:block;font-size:17px;line-height:1.2}.capa span{font-size:12px;color:var(--cinza)}
+.numeros{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.numeros div{background:#fff;border:1px solid var(--borda);border-radius:12px;padding:11px;text-align:center}
+.numeros b{display:block;font-size:22px}.numeros span{font-size:10px;color:var(--cinza);text-transform:uppercase;letter-spacing:.6px}
+.numeros .alerta b{color:var(--caneta)}
+.duplo{display:flex;gap:8px;margin:12px 0 14px}
+.modo{flex:1;padding:11px;background:none;border:1px dashed var(--pauta);border-radius:10px;font:inherit;font-size:11.5px;font-weight:700;color:var(--cinza);text-transform:uppercase;letter-spacing:.7px}
+.modo.on{background:var(--tinta);color:#fff;border-style:solid;border-color:var(--tinta)}
+.timeline{list-style:none;display:flex;flex-direction:column;gap:6px}
+.timeline li{display:flex;align-items:center;gap:11px;background:#fff;border:1px solid var(--borda);border-radius:12px;padding:8px 12px 8px 8px}
+.mini{width:38px;height:46px;flex:0 0 auto;border-radius:6px;overflow:hidden;background:#EFF2F7;position:relative}
+.mini img{width:100%;height:100%;object-fit:cover}
+.timeline .txt{flex:1;display:flex;flex-direction:column;gap:2px}
+.timeline b{font-size:13px;font-weight:600;line-height:1.25}
+.timeline em{font-style:normal;font-size:10.5px;color:var(--cinza)}
+.selo{font-size:9.5px;font-weight:700;padding:4px 7px;border-radius:6px;text-transform:uppercase;letter-spacing:.4px}
+.selo.falta{background:#FBF0EE;color:var(--caneta)}.selo.esperando{background:#FDF4E5;color:#A8741C}
+.nota{font-size:26px;font-weight:800;color:var(--caneta);transform:rotate(-5deg);display:inline-block}
+.mural{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.mural figure{background:#fff;border:1px solid var(--borda);border-radius:12px;overflow:hidden}
+.mural .quadro{display:block;position:relative;height:130px;background:#EFF2F7}
+.mural img{width:100%;height:100%;object-fit:cover}
+.mural figcaption{padding:8px 9px}.mural b{font-size:13px}
+.mural em{display:block;font-style:normal;font-size:10px;color:var(--cinza);margin-top:2px;line-height:1.3}
+.mural .fora{opacity:.5}
+nav{display:flex;border-top:1px solid var(--borda);background:#fff;flex:0 0 auto;padding-bottom:env(safe-area-inset-bottom)}
+nav button{flex:1;padding:13px 2px 15px;background:none;border:none;font:inherit;font-size:11px;font-weight:600;color:var(--cinza);position:relative}
+.total-dev{background:var(--tinta);color:#fff;border-radius:10px;padding:11px 14px;font-size:13px;font-weight:600;margin:16px 0 4px}
+nav button.on{color:var(--tinta)}
+nav button.on::before{content:"";position:absolute;top:0;left:24%;right:24%;height:2.5px;background:var(--tinta)}
+nav em{position:absolute;top:6px;right:16%;background:var(--caneta);color:#fff;font-style:normal;font-size:9px;font-weight:700;min-width:16px;height:16px;border-radius:8px;display:flex;align-items:center;justify-content:center;padding:0 4px}
+.abas{display:flex;gap:6px;padding:14px 16px 0}
+.abas button{flex:1;padding:10px;border:1px solid var(--borda);background:#fff;border-radius:10px;font:inherit;
+  font-size:12.5px;font-weight:600;color:var(--cinza)}
+.abas button.on{background:var(--tinta);color:#fff;border-color:var(--tinta)}
+.lista.sem-topo{padding-top:14px}
+.ativ{width:100%;display:flex;align-items:center;gap:12px;background:#fff;border:1px solid var(--borda);
+  border-radius:12px;padding:12px;margin-bottom:8px;font:inherit;color:inherit;text-align:left}
+.ativ .txt{flex:1;display:flex;flex-direction:column;gap:3px;min-width:0}
+.ativ b{font-size:14px;font-weight:600}
+.ativ em{font-style:normal;font-size:10.5px;color:var(--cinza)}
+.barra{display:block;height:5px;background:#EDF1F7;border-radius:3px;overflow:hidden;margin-top:4px}
+.barra i{display:block;height:100%;background:var(--verde);border-radius:3px}
+.frac{text-align:right;flex:0 0 auto}
+.frac b{display:block;font-size:20px;font-weight:800;line-height:1}
+.frac i{font-style:normal;font-size:9.5px;color:var(--cinza)}
+.media i{font-style:normal;font-size:11px;color:var(--cinza);font-weight:500}
+.media.zero{color:var(--caneta)}.media.baixo{color:#A8741C}
+.cel{position:relative}
+.olho{position:absolute;top:5px;right:5px;background:rgba(20,33,61,.85);color:#fff;border:none;border-radius:7px;
+  font:inherit;font-size:9.5px;font-weight:700;padding:4px 7px;text-transform:uppercase;letter-spacing:.4px}
+.ajustes{margin-top:8px;background:rgba(255,255,255,.14);border:none;color:#C9D6EC;font:inherit;font-size:11px;
+  padding:7px 10px;border-radius:8px;align-self:flex-start}
+.dupla{display:flex;gap:7px;align-items:stretch}
+.dupla .chip{flex:1}
+.tres{width:44px;border:1px solid var(--borda);background:#fff;border-radius:10px;font-size:18px;color:var(--cinza);flex:0 0 auto}
+.perigo,.perigo-btn{border-color:#EEC7C0;color:var(--caneta)}
+.perigo b{color:var(--caneta)}
+#visor-cheio{position:fixed;inset:0;background:#0B0F18;z-index:50;display:flex;flex-direction:column}
+#visor-cheio img{flex:1;width:100%;min-height:0;object-fit:contain}
+.barra-visor{display:flex;align-items:center;gap:12px;padding:calc(12px + env(safe-area-inset-top)) 14px 12px;color:#fff}
+.barra-visor button{background:none;border:none;color:#fff;font-size:20px;line-height:1}
+.barra-visor span{font-size:12.5px;opacity:.85;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.baixo-visor{padding:12px 14px calc(16px + env(safe-area-inset-bottom));display:flex;flex-direction:column;gap:10px;align-items:center}
+.pgs-visor{display:flex;gap:6px;flex-wrap:wrap;justify-content:center}
+.pgs-visor button{width:30px;height:30px;border-radius:9px;border:none;background:rgba(255,255,255,.22);color:#fff;font:inherit;font-size:12px}
+.pgs-visor button.on{background:#fff;color:#14213D;font-weight:700}
+.perigo-btn{background:none;border:1px solid rgba(208,49,29,.6);color:#FF8A72;font:inherit;font-size:12.5px;
+  font-weight:700;padding:11px 18px;border-radius:10px;text-transform:uppercase;letter-spacing:.6px}
+.vazio{padding:46px 24px;text-align:center}
+.vazio p{font-size:16px;font-weight:700}
+.vazio span{font-size:12px;color:var(--cinza);display:block;margin-top:6px;line-height:1.5}
+#aviso{position:fixed;left:16px;right:16px;bottom:84px;max-width:488px;margin:0 auto;background:var(--tinta);color:#fff;
+  font-size:12.5px;padding:12px 14px;border-radius:10px;text-align:center;opacity:0;transition:opacity .2s;pointer-events:none;z-index:9}
+#aviso.ver{opacity:1}
+.pauta{position:absolute;inset:0;background-image:repeating-linear-gradient(transparent 0 11px,var(--pauta) 11px 12px)}
+</style>
+</head>
+<body>
+<div id="tela">
+  <header>
+    <button class="voltar" id="btVoltar" hidden>&#8592;</button>
+    <span class="marca" id="marca">registro</span>
+    <h1 id="titulo">Minhas salas</h1>
+    <button class="acao" id="btAcao" hidden></button>
+  </header>
+  <main id="app"></main>
+  <nav id="nav"></nav>
+</div>
+<div id="aviso"></div>
+<input type="file" id="camera" accept="image/*" capture="environment" hidden>
+<input type="file" id="arquivo" accept="application/json" hidden>
+
+<script>
+/* ============ dados fixos ============ */
+const NOMES_CIFRADOS = {"salt":"5Xt0g9BQ8kdHj2m99K2cxw==","iv":"oPGeYPqIrM+rnoHb","dados":"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"};
+const SEIS = ["6A","6B","6C","6D","6E"], OITO = ["8A","8B","8C","8D"];
+const TURMAS = [...SEIS, ...OITO];
+const NOME_TURMA = {"6A":"6º A","6B":"6º B","6C":"6º C","6D":"6º D","6E":"6º E","8A":"8º A","8B":"8º B","8C":"8º C","8D":"8º D"};
+const SALAS = [
+  ...SEIS.map(t => ({id:"ING-"+t, turma:t, disc:"Inglês", sigla:"ING"})),
+  ...TURMAS.map(t => ({id:"OE-"+t, turma:t, disc:"Orientação de Estudos", sigla:"OE"}))
+];
+/* os nomes vêm cifrados (o código é público); a senha destrava uma vez e eles ficam guardados no celular */
+const BASE = [];
+function montarBase(porTurma){ BASE.length = 0;
+  TURMAS.forEach(t => (porTurma[t]||[]).forEach((nome,i) =>
+    BASE.push({id:t+"-"+String(i+1).padStart(2,"0"), nome, turma:t}))); }
+async function decifrarNomes(senha){
+  const de64 = s => Uint8Array.from(atob(s), c => c.charCodeAt(0)), enc = new TextEncoder();
+  const k0 = await crypto.subtle.importKey("raw", enc.encode(senha.trim()), "PBKDF2", false, ["deriveKey"]);
+  const key = await crypto.subtle.deriveKey({name:"PBKDF2", salt:de64(NOMES_CIFRADOS.salt), iterations:600000, hash:"SHA-256"},
+    k0, {name:"AES-GCM", length:256}, false, ["decrypt"]);
+  const claro = await crypto.subtle.decrypt({name:"AES-GCM", iv:de64(NOMES_CIFRADOS.iv)}, key, de64(NOMES_CIFRADOS.dados));
+  return new TextDecoder().decode(claro);
+}
+
+/* ============ util ============ */
+const $ = s => document.querySelector(s);
+const hoje = () => { const d = new Date(); return new Date(d - d.getTimezoneOffset()*60000).toISOString().slice(0,10); };
+const dCurta = iso => iso ? iso.slice(8,10)+"/"+iso.slice(5,7) : "";
+const vg = n => String(n).replace(".",",");
+const esc = s => String(s).replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const semAc = s => s.normalize("NFD").replace(/[\u0300-\u036f]/g,"").toUpperCase();
+const pnome = n => { const p = n.split(" "); return p.length>1 ? p[0]+" "+p[1][0]+"." : p[0]; };
+const inic = n => { const p = n.split(" ").filter(Boolean); return (p[0][0]+(p.length>1?p[p.length-1][0]:"")).toUpperCase(); };
+function aviso(t){ const a=$("#aviso"); a.textContent=t; a.classList.add("ver"); clearTimeout(a._t); a._t=setTimeout(()=>a.classList.remove("ver"),2600); }
+
+/* ============ banco no próprio celular ============ */
+function abrir(){ return new Promise((res,rej)=>{ const r=indexedDB.open("registro",1);
+  r.onupgradeneeded=e=>{const d=e.target.result; if(!d.objectStoreNames.contains("kv"))d.createObjectStore("kv"); if(!d.objectStoreNames.contains("fotos"))d.createObjectStore("fotos");};
+  r.onsuccess=()=>res(r.result); r.onerror=()=>rej(r.error); }); }
+async function bPut(loja,chave,valor){ const db=await abrir(); return new Promise((res,rej)=>{ const t=db.transaction(loja,"readwrite"); t.objectStore(loja).put(valor,chave); t.oncomplete=()=>res(); t.onerror=()=>rej(t.error); }); }
+async function bGet(loja,chave){ const db=await abrir(); return new Promise((res,rej)=>{ const t=db.transaction(loja,"readonly"); const q=t.objectStore(loja).get(chave); q.onsuccess=()=>res(q.result); q.onerror=()=>rej(q.error); }); }
+async function bDel(loja,chave){ const db=await abrir(); return new Promise((res,rej)=>{ const t=db.transaction(loja,"readwrite"); t.objectStore(loja).delete(chave); t.oncomplete=()=>res(); t.onerror=()=>rej(t.error); }); }
+async function bTodas(){ const db=await abrir(); return new Promise((res,rej)=>{ const t=db.transaction("fotos","readonly"); const s=t.objectStore("fotos"); const ks=s.getAllKeys(), vs=s.getAll();
+  t.oncomplete=()=>res(ks.result.map((k,i)=>[k,vs.result[i]])); t.onerror=()=>rej(t.error); }); }
+
+/* ============ estado ============ */
+const S = { atividades:[], registros:[], extras:[], saidas:{} };
+let ALUNOS = [], TODOS = [];
+function montarElenco(){
+  const todos = [...BASE, ...S.extras], ativos = [];
+  TURMAS.forEach(t => todos.filter(a=>a.turma===t && !S.saidas[a.id])
+    .sort((a,b)=>semAc(a.nome).localeCompare(semAc(b.nome)))
+    .forEach((a,i)=>ativos.push({...a, numero:i+1})));
+  ALUNOS = ativos;
+  TODOS = todos.map(a => { const x = ativos.find(v=>v.id===a.id);
+    return {...a, numero: x?x.numero:null, saiuEm:S.saidas[a.id]||null}; });
+}
+const achar = id => TODOS.find(a=>a.id===id) || {id, nome:"Aluno removido", turma:"", numero:null};
+const salvar = () => bPut("kv","estado", JSON.stringify(S)).catch(()=>aviso("Não consegui salvar."));
+const atividade = id => S.atividades.find(a=>a.id===id);
+const finalDe = r => { const at=atividade(r.atividadeId);
+  return r.nota==null ? null : Math.max(0, r.nota - (r.status==="atrasado" && at ? (at.desconto||0) : 0)); };
+const pendentes = () => S.registros.filter(r => r.nota==null && r.status!=="não entregue");
+
+/* ============ notas para a SED (só OE) ============ */
+/* atividade sem bimestre marcado é do 3º, que foi quando o app começou */
+const bimDe = at => at.bim || 3;
+const bimAtual = () => S.bim || 3;
+/* 6º: tudo é produção. 8º: título com "Missão" é missão, o resto é produção */
+const catOE = (at, turma) => turma[0]==="6" ? "p" : (semAc(at.titulo).includes("MISS") ? "m" : "p");
+/* abaixo de ,8 desce; de ,8 pra cima sobe */
+const arred = x => { x = Math.round(x*1000)/1000; const f = x - Math.floor(x); return f >= 0.8 ? Math.ceil(x) : Math.floor(x); };
+const fezComFoto = (atId, alunoId) => S.registros.some(r => r.atividadeId===atId && r.alunoId===alunoId && r.fotos && r.fotos.length);
+function notasSED(bim){
+  return SALAS.filter(s => s.sigla==="OE").map(s => {
+    const ats = S.atividades.filter(a => a.salaId===s.id && bimDe(a)===bim);
+    const grupo = {m: ats.filter(a => catOE(a, s.turma)==="m"), p: ats.filter(a => catOE(a, s.turma)==="p")};
+    const alunos = ALUNOS.filter(a => a.turma===s.turma).map(a => {
+      const n = {};
+      for (const k of ["m","p"]) if (grupo[k].length)
+        n[k] = arred(10 * grupo[k].filter(at => fezComFoto(at.id, a.id)).length / grupo[k].length);
+      return {a, n};
+    });
+    return {s, grupo, alunos};
+  }).filter(x => x.grupo.m.length || x.grupo.p.length);
+}
+/* código que o favorito "Lançar notas" lê na SED: nomes uma vez, notas alinhadas */
+function codigoSED(bim){
+  const t = {};
+  notasSED(bim).forEach(({s, grupo, alunos}) => {
+    t[s.turma] = {n: alunos.map(x => x.a.nome)};
+    for (const k of ["m","p"]) if (grupo[k].length) t[s.turma][k] = alunos.map(x => x.n[k]);
+  });
+  return "SED1:" + JSON.stringify({b:bim, d:dCurta(hoje()), t});
+}
+
+/* fotos: blob no banco, URL só enquanto a tela está aberta */
+const urls = new Map();
+async function urlDaFoto(id){ if(urls.has(id)) return urls.get(id);
+  const b = await bGet("fotos", id); if(!b) return null;
+  const u = URL.createObjectURL(b); urls.set(id,u); return u; }
+async function pintarFotos(){ for (const img of document.querySelectorAll("img[data-foto]")) {
+  const u = await urlDaFoto(img.dataset.foto); if(u) img.src=u; } }
+
+async function comprimir(file){
+  const bmp = await createImageBitmap(file);
+  const k = Math.min(1, 1200/Math.max(bmp.width,bmp.height));
+  const c = document.createElement("canvas");
+  c.width = Math.round(bmp.width*k); c.height = Math.round(bmp.height*k);
+  c.getContext("2d").drawImage(bmp,0,0,c.width,c.height);
+  return new Promise(res => c.toBlob(b=>res(b), "image/jpeg", 0.6));
+}
+
+/* ============ navegação ============ */
+let V = {aba:"salas"};
+const ir = v => { V = {...V, ...v}; render(); };
+
+/* ============ ações ============ */
+async function guardarFoto(atId, alunoId, file){
+  const blob = await comprimir(file);
+  const fid = "f"+Date.now()+Math.random().toString(36).slice(2,6);
+  await bPut("fotos", fid, blob);
+  const at = atividade(atId);
+  const novoSt = (at.ritmo==="prazo" && at.encerrada) ? "atrasado" : "entregue";
+  let r = S.registros.find(x=>x.atividadeId===atId && x.alunoId===alunoId);
+  if (r) {
+    if (r.status==="não entregue") { r.status = novoSt; r.criadoEm = hoje(); }
+    r.fotos = [...(r.fotos||[]), fid];
+    r.bytes = (r.bytes||0) + blob.size;
+  } else {
+    S.registros.push({id:"r"+Date.now(), atividadeId:atId, alunoId, status:novoSt,
+      fotos:[fid], bytes:blob.size, nota:null, criadoEm:hoje()});
+  }
+  await salvar(); render();
+}
+function pedirFoto(atId, alunoId){
+  const inp = $("#camera");
+  inp.onchange = async () => { const f = inp.files[0]; inp.value="";
+    if (f) { try { await guardarFoto(atId, alunoId, f); } catch(e){ aviso("Não consegui ler essa imagem."); } } };
+  inp.click();
+}
+function encerrar(atId){
+  const at = atividade(atId), sala = SALAS.find(s=>s.id===at.salaId);
+  at.encerrada = true;
+  if (at.ritmo !== "proprio") {
+    const tem = new Set(S.registros.filter(r=>r.atividadeId===atId).map(r=>r.alunoId));
+    ALUNOS.filter(a=>a.turma===sala.turma && !tem.has(a.id)).forEach(a =>
+      S.registros.push({id:"r"+Date.now()+a.id, atividadeId:atId, alunoId:a.id, status:"não entregue", fotos:[], bytes:0, nota:null, criadoEm:hoje()}));
+  }
+  salvar();
+  const fila = S.registros.filter(r=>r.atividadeId===atId && r.nota==null && r.status!=="não entregue").map(r=>r.id);
+  if (fila.length) ir({tela:"pilha", fila, i:0});
+  else { aviso(at.ritmo==="proprio" ? "Atividade segue aberta." : "Turma fechada."); ir({tela:null, aba:"salas"}); }
+}
+async function apagarFoto(regId, fid){
+  const r = S.registros.find(x=>x.id===regId); if (!r) return;
+  r.fotos = (r.fotos||[]).filter(f => f !== fid);
+  try { await bDel("fotos", fid); } catch(e){}
+  urls.delete(fid);
+  if (!r.fotos.length) S.registros = S.registros.filter(x => x.id !== r.id);
+  await salvar();
+  if (V.visor) { const ainda = S.registros.find(x=>x.id===regId);
+    if (!ainda || !ainda.fotos.length) V.visor = null; else V.visor.i = 0; }
+  aviso("Foto apagada.");
+  render();
+}
+async function apagarAtividade(atId){
+  const regs = S.registros.filter(r => r.atividadeId === atId);
+  for (const r of regs) for (const f of (r.fotos||[])) { try { await bDel("fotos", f); } catch(e){} urls.delete(f); }
+  S.registros = S.registros.filter(r => r.atividadeId !== atId);
+  S.atividades = S.atividades.filter(a => a.id !== atId);
+  await salvar();
+  aviso("Atividade apagada.");
+  ir({tela:null, aba:"registrar", novaSala:V.novaSala||null});
+}
+function darNota(regId, nota){
+  const r = S.registros.find(x=>x.id===regId);
+  r.nota = nota; r.corrigidoEm = hoje(); salvar();
+  ir({i: V.i + 1});
+}
+
+/* ============ backup ============ */
+function baixar(nome, conteudo, tipo){
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(new Blob([conteudo], {type:tipo}));
+  a.download = nome; a.click(); setTimeout(()=>URL.revokeObjectURL(a.href), 4000);
+}
+function exportarCSV(){
+  const l = [["Disciplina","Turma","Nº","Aluno","Atividade","Data da entrega","Situação","Nota dada","Desconto","Nota final"]];
+  S.registros.forEach(r => { const at = atividade(r.atividadeId); if(!at) return;
+    const s = SALAS.find(x=>x.id===at.salaId), a = achar(r.alunoId);
+    const d = r.status==="atrasado" ? (at.desconto||0) : 0;
+    const f = r.status==="não entregue" ? 0 : finalDe(r);
+    l.push([s.disc, NOME_TURMA[s.turma], a.numero||"", a.nome, at.titulo, dCurta(r.criadoEm), r.status,
+      r.nota==null?"":vg(r.nota), d?("-"+vg(d)):"", f==null?"":vg(f)]);
+  });
+  baixar("notas_"+hoje()+".csv", "\uFEFF"+l.map(x=>x.map(c=>'"'+String(c).replace(/"/g,'""')+'"').join(";")).join("\n"), "text/csv");
+  aviso("Planilha de notas salva.");
+}
+async function exportarTudo(){
+  aviso("Montando o backup completo…");
+  const fotos = await bTodas();
+  const b64 = b => new Promise(res => { const fr = new FileReader(); fr.onload=()=>res(fr.result); fr.readAsDataURL(b); });
+  const pacote = { versao:1, data:hoje(), estado:S, fotos:{} };
+  for (const [k,v] of fotos) pacote.fotos[k] = await b64(v);
+  baixar("backup_registro_"+hoje()+".json", JSON.stringify(pacote), "application/json");
+  aviso("Backup completo salvo. Guarde no Drive.");
+}
+function restaurar(){
+  const inp = $("#arquivo");
+  inp.onchange = async () => { const f = inp.files[0]; inp.value=""; if(!f) return;
+    try {
+      const p = JSON.parse(await f.text());
+      if (!p.estado) throw 0;
+      Object.assign(S, p.estado);
+      for (const [k,v] of Object.entries(p.fotos||{})) await bPut("fotos", k, await (await fetch(v)).blob());
+      montarElenco(); await salvar(); urls.clear(); aviso("Backup restaurado."); ir({tela:null, aba:"salas"});
+    } catch(e){ aviso("Arquivo de backup inválido."); }
+  };
+  inp.click();
+}
+
+/* ============ telas ============ */
+function telaSalas(){
+  const bloco = (rot, cor, lista) => `
+    <h2 class="serie"><i class="ponto ${cor}"></i>${rot} <span>${lista.length} salas</span></h2>
+    <div class="grade2">${lista.map(s => {
+      const ats = S.atividades.filter(a=>a.salaId===s.id).map(a=>a.id);
+      const sem = S.registros.filter(r=>ats.includes(r.atividadeId) && r.nota==null && r.status!=="não entregue").length;
+      return `<button class="cartao" data-a="sala" data-id="${s.id}">
+        <span class="letra">${NOME_TURMA[s.turma]}</span>
+        <span class="qtd">${ALUNOS.filter(a=>a.turma===s.turma).length} alunos · ${ats.length} atividades</span>
+        ${sem?`<span class="pend">${sem} sem nota</span>`:""}</button>`;
+    }).join("")}</div>`;
+  return `<div class="lista">
+    <button class="principal" style="margin:0 0 6px" data-a="sed">Notas para a SED · ${bimAtual()}º bimestre</button>
+    ${bloco("Inglês","ing",SALAS.filter(s=>s.sigla==="ING"))}
+    ${bloco("Orientação de Estudos","oe",SALAS.filter(s=>s.sigla==="OE"))}
+    <h2 class="serie">Segurança</h2>
+    <div class="caixa">
+      <button class="chip largo" data-a="csv"><b>Baixar planilha de notas</b><span class="sub">CSV</span></button>
+      <button class="chip largo" data-a="tudo"><b>Backup completo com fotos</b><span class="sub">JSON</span></button>
+      <button class="chip largo" data-a="restaurar"><b>Restaurar de um backup</b><span class="sub">substitui tudo</span></button>
+      <span class="nada">Faça o backup completo no fim de cada bimestre e guarde no Drive. É a sua garantia se o celular quebrar.</span>
+    </div></div>`;
+}
+
+function telaSala(){
+  const s = SALAS.find(x=>x.id===V.sala), ed = V.editando;
+  const ats = S.atividades.filter(a=>a.salaId===s.id).map(a=>a.id);
+  const media = id => { const ns = S.registros.filter(r=>r.alunoId===id && ats.includes(r.atividadeId))
+      .map(r => r.status==="não entregue" ? 0 : finalDe(r)).filter(n=>n!=null);
+    return ns.length ? (ns.reduce((a,b)=>a+b,0)/ns.length).toFixed(1).replace(".",",") : null; };
+  const ativos = ALUNOS.filter(a=>a.turma===s.turma);
+  const fora = TODOS.filter(a=>a.turma===s.turma && a.saiuEm);
+  if ((V.abaSala||"alunos") === "atividades") return abaSalaHtml(s) + telaAtividadesDaSala(s);
+  return abaSalaHtml(s) + `<div class="lista sem-topo">
+    <div class="cabeca"><span class="etiqueta">${s.disc}</span>
+      <button class="link" data-a="editar">${ed?"pronto":"editar turma"}</button></div>
+    ${ed ? `<div class="caixa"><p>Chegou aluno novo</p>
+      <div class="juntos"><input id="novoNome" placeholder="Nome completo"><button class="add" data-a="addaluno">+</button></div>
+      <span class="nada">A chamada se renumera sozinha em ordem alfabética. Quem sai não é apagado: as notas e as fotos continuam guardadas.</span></div>` : ""}
+    ${ativos.map(a => `<div class="linha">
+      <button class="parte" data-a="perfil" data-id="${a.id}">
+        <span class="num">${String(a.numero).padStart(2,"0")}</span>
+        <span class="av">${inic(a.nome)}</span><span class="nome">${esc(a.nome)}</span></button>
+      ${ed ? `<button class="saiu" data-a="saiu" data-id="${a.id}">saiu</button>`
+           : `<span class="media${media(a.id)?"":" vazia"}">${media(a.id)||"—"}</span>`}</div>`).join("")}
+    ${fora.length ? `<h2 class="serie">Saíram da escola <span>${fora.length}</span></h2>` + fora.map(a=>`
+      <div class="linha fora"><button class="parte" data-a="perfil" data-id="${a.id}">
+        <span class="av">${inic(a.nome)}</span><span class="nome">${esc(a.nome)}</span>
+        <span class="quando">${dCurta(a.saiuEm)}</span></button>
+      ${ed?`<button class="saiu volta" data-a="saiu" data-id="${a.id}">voltou</button>`:""}</div>`).join("") : ""}
+  </div>`;
+}
+
+/* quem entregou = tem registro com foto; quem falta = aluno ativo sem isso */
+function balanco(atId, turma){
+  const regs = S.registros.filter(r => r.atividadeId === atId && r.status !== "não entregue" && r.fotos && r.fotos.length);
+  const entregaram = regs.map(r => ({r, a: achar(r.alunoId)})).filter(x => x.a.numero)
+    .sort((x,y) => x.a.numero - y.a.numero);
+  const tem = new Set(regs.map(r => r.alunoId));
+  const faltam = ALUNOS.filter(a => a.turma === turma && !tem.has(a.id));
+  return {entregaram, faltam, total: ALUNOS.filter(a => a.turma === turma).length};
+}
+
+function abaSalaHtml(s){
+  const aba = V.abaSala || "alunos";
+  return `<div class="abas">
+    <button class="${aba==="alunos"?"on":""}" data-a="abasala" data-id="alunos">Alunos</button>
+    <button class="${aba==="atividades"?"on":""}" data-a="abasala" data-id="atividades">Atividades</button>
+  </div>`;
+}
+
+function telaAtividadesDaSala(s){
+  const ats = S.atividades.filter(a => a.salaId === s.id).slice().reverse();
+  if (!ats.length) return `<div class="vazio"><p>Nenhuma atividade nesta sala.</p>
+    <span>Crie uma na aba Fotografar.</span></div>`;
+  if (V.resumo) {
+    const linhas = ALUNOS.filter(a => a.turma === s.turma).map(a => {
+      const n = ats.filter(at => S.registros.some(r => r.atividadeId===at.id && r.alunoId===a.id && r.fotos && r.fotos.length)).length;
+      return {a, n};
+    }).sort((x,y) => x.n - y.n || x.a.numero - y.a.numero);
+    return `<div class="lista sem-topo">
+      <div class="cabeca"><span class="etiqueta">quem está devendo</span>
+        <button class="link" data-a="resumo">ver atividades</button></div>
+      ${linhas.map(({a,n}) => `<div class="linha">
+        <button class="parte" data-a="perfil" data-id="${a.id}">
+          <span class="num">${String(a.numero).padStart(2,"0")}</span>
+          <span class="av">${inic(a.nome)}</span><span class="nome">${esc(a.nome)}</span></button>
+        <span class="media ${n===0?"zero":(n<ats.length/2?"baixo":"")}">${n}<i>/${ats.length}</i></span></div>`).join("")}
+      <p class="dica">Quantas das ${ats.length} atividades desta sala cada um já entregou, do que menos entregou para o que mais entregou.</p></div>`;
+  }
+  return `<div class="lista sem-topo">
+    <div class="cabeca"><span class="etiqueta">${s.disc}</span>
+      <button class="link" data-a="resumo">quem está devendo</button></div>
+    ${ats.map(at => { const b = balanco(at.id, s.turma);
+      const pct = b.total ? Math.round(b.entregaram.length / b.total * 100) : 0;
+      return `<button class="ativ" data-a="relatorio" data-id="${at.id}">
+        <span class="txt"><b>${esc(at.titulo)}</b><em>${dCurta(at.data)} · ${at.ritmo==="proprio"?"ritmo próprio":(at.encerrada?"encerrada":"prazo aberto")}</em>
+          <span class="barra"><i style="width:${pct}%"></i></span></span>
+        <span class="frac"><b>${b.entregaram.length}</b><i>de ${b.total}</i></span></button>`;
+    }).join("")}
+    <p class="dica">Toque em uma atividade para ver quem entregou e quem falta.</p></div>`;
+}
+
+function telaRelatorio(){
+  const at = atividade(V.rel);
+  if (!at) return `<div class="vazio"><p>Atividade não encontrada.</p></div>`;
+  const s = SALAS.find(x => x.id === at.salaId);
+  const b = balanco(at.id, s.turma);
+  const pct = b.total ? Math.round(b.entregaram.length / b.total * 100) : 0;
+  return `<div class="lista">
+    <div class="faixa"><strong>${esc(at.titulo)}</strong>
+      <span>${NOME_TURMA[s.turma]} · ${s.disc} · criada em ${dCurta(at.data)}</span>
+      <span class="prog">${b.entregaram.length} de ${b.total} entregaram · ${pct}%</span></div>
+
+    <h2 class="serie"><i class="ponto ing"></i>Falta entregar <span>${b.faltam.length}</span></h2>
+    ${b.faltam.length ? b.faltam.map(a => `<div class="linha">
+      <button class="parte" data-a="perfil" data-id="${a.id}">
+        <span class="num">${String(a.numero).padStart(2,"0")}</span>
+        <span class="av">${inic(a.nome)}</span><span class="nome">${esc(a.nome)}</span></button>
+      <button class="saiu volta" data-a="fotorel" data-id="${a.id}">entregou</button></div>`).join("")
+      : `<p class="dica">Todo mundo entregou.</p>`}
+
+    <h2 class="serie"><i class="ponto oe"></i>Entregaram <span>${b.entregaram.length}</span></h2>
+    ${b.entregaram.map(({r,a}) => `<div class="linha">
+      <button class="parte" data-a="ver" data-id="${r.id}">
+        <span class="num">${String(a.numero).padStart(2,"0")}</span>
+        <span class="av">${inic(a.nome)}</span><span class="nome">${esc(a.nome)}</span>
+        <span class="quando">${dCurta(r.criadoEm)} · ${r.fotos.length} ${r.fotos.length===1?"foto":"fotos"}${r.status==="atrasado"?" · atrasado":""}</span></button>
+      <span class="media${r.nota==null?" vazia":""}">${r.nota==null?"—":vg(finalDe(r))}</span></div>`).join("")}
+
+    <div class="caixa" style="margin-top:18px">
+      <button class="chip largo" data-a="copiarfalta"><b>Copiar a lista de quem falta</b><span class="sub">colar no WhatsApp</span></button>
+      <button class="chip largo" data-a="csvativ"><b>Baixar esta lista em planilha</b><span class="sub">CSV</span></button>
+    </div></div>`;
+}
+
+/* varredura geral: quem entregou pouco ou nada, em qualquer sala */
+function telaDevendo(){
+  const corte = V.corte == null ? 0 : V.corte;
+  const filtro = V.disc || "todas";
+  const salas = SALAS.filter(s => (filtro==="todas" || s.sigla===filtro) && S.atividades.some(a => a.salaId===s.id));
+  const blocos = salas.map(s => {
+    const ats = S.atividades.filter(a => a.salaId === s.id);
+    const linhas = ALUNOS.filter(a => a.turma === s.turma).map(a => ({
+      a, n: ats.filter(at => S.registros.some(r => r.atividadeId===at.id && r.alunoId===a.id && r.fotos && r.fotos.length)).length
+    })).filter(x => x.n <= corte).sort((x,y) => x.n - y.n || x.a.numero - y.a.numero);
+    return {s, total: ats.length, linhas};
+  }).filter(b => b.linhas.length);
+  const quantos = blocos.reduce((n,b) => n + b.linhas.length, 0);
+
+  return `<div class="lista">
+    <label>Mostrar quem entregou no máximo</label>
+    <div class="chips">
+      ${[0,1,2,3].map(c => `<button class="chip ${corte===c?"on":""}" data-a="corte" data-id="${c}">${c===0?"nada":c===1?"1 atividade":c+" atividades"}</button>`).join("")}
+    </div>
+    <label>Matéria</label>
+    <div class="chips">
+      ${[["todas","Todas"],["ING","Inglês"],["OE","Orientação de Estudos"]].map(([k,r]) =>
+        `<button class="chip ${filtro===k?"on":""}" data-a="filtrodisc" data-id="${k}">${r}</button>`).join("")}
+    </div>
+    <div class="total-dev">${quantos} ${quantos===1?"aluno":"alunos"} ${corte===0?"sem nenhuma entrega":"com "+corte+" ou menos"}</div>
+    ${blocos.length ? blocos.map(b => `
+      <h2 class="serie"><i class="ponto ${b.s.sigla==="ING"?"ing":"oe"}"></i>${NOME_TURMA[b.s.turma]} · ${b.s.sigla}
+        <span>${b.linhas.length} de ${ALUNOS.filter(a=>a.turma===b.s.turma).length} · ${b.total} atividades</span></h2>
+      ${b.linhas.map(({a,n}) => `<div class="linha">
+        <button class="parte" data-a="perfil" data-id="${a.id}">
+          <span class="num">${String(a.numero).padStart(2,"0")}</span>
+          <span class="av">${inic(a.nome)}</span><span class="nome">${esc(a.nome)}</span></button>
+        <span class="media ${n===0?"zero":"baixo"}">${n}<i>/${b.total}</i></span></div>`).join("")}`).join("")
+      : `<div class="vazio"><p>Ninguém nesse filtro.</p><span>Solte o corte para ver mais alunos.</span></div>`}
+    ${blocos.length ? `<div class="caixa" style="margin-top:18px">
+      <button class="chip largo" data-a="copiardev"><b>Copiar esta lista</b><span class="sub">colar no WhatsApp</span></button></div>` : ""}
+    <p class="dica">A conta é por sala: um aluno do 6º pode estar em dia em Inglês e devendo tudo em Orientação de Estudos. Salas sem atividade criada não aparecem.</p>
+  </div>`;
+}
+
+function telaRegistrar(){
+  if (!V.novaSala) return `<div class="form"><label>Qual sala</label><div class="chips col">
+    ${SALAS.map(s=>`<button class="chip largo" data-a="escolhesala" data-id="${s.id}">
+      <b>${NOME_TURMA[s.turma]}</b><span class="tag ${s.sigla==="ING"?"ing":"oe"}">${s.sigla}</span></button>`).join("")}
+    </div></div>`;
+  const s = SALAS.find(x=>x.id===V.novaSala);
+  const ritmo = V.ritmo || (s.sigla==="OE" ? "proprio" : "prazo");
+  const desc = V.desc==null ? 1 : V.desc;
+  const daSala = S.atividades.filter(a=>a.salaId===s.id).slice(-6).reverse();
+  return `<div class="form">
+    <label>Sala</label>
+    <button class="chip on largo" data-a="trocasala"><b>${NOME_TURMA[s.turma]} — ${s.disc}</b><span class="sub">trocar</span></button>
+    ${daSala.length?`<label>Continuar uma que já existe</label><div class="chips col">
+      ${daSala.map(a=>{ const n = S.registros.filter(r=>r.atividadeId===a.id && r.status!=="não entregue").length;
+        return `<div class="dupla"><button class="chip largo" data-a="continuar" data-id="${a.id}"><b>${esc(a.titulo)}</b>
+          <span class="sub">${dCurta(a.data)} · ${n} entregas${a.ritmo==="proprio"?" · aberta":(a.encerrada?" · atraso":"")}</span></button>
+          <button class="tres" data-a="ajustar" data-id="${a.id}">⋯</button></div>`;}).join("")}
+      </div>`:""}
+    <label>Ou criar uma nova</label>
+    <input id="tituloAt" placeholder="Ex.: Vocabulário — unidade 3" value="${esc(V.titulo||"")}">
+    <label>Ritmo</label>
+    <div class="chips">
+      <button class="chip ${ritmo==="prazo"?"on":""}" data-a="ritmo" data-id="prazo">Prazo único</button>
+      <button class="chip ${ritmo==="proprio"?"on":""}" data-a="ritmo" data-id="proprio">Ritmo próprio</button></div>
+    <p class="dica">${ritmo==="prazo"
+      ? "Ao encerrar, quem não foi fotografado vira não entregue. Quem entregar depois entra como atrasado."
+      : "Ninguém é marcado como não entregue. A atividade fica aberta e cada um entrega quando chegar no nível."}</p>
+    ${ritmo==="prazo"?`<label>Desconto por atraso</label><div class="chips">
+      ${[0,0.5,1,2].map(d=>`<button class="chip ${desc===d?"on":""}" data-a="desc" data-id="${d}">${d===0?"sem desconto":"−"+vg(d)}</button>`).join("")}
+      </div>`:""}
+    <button class="principal" data-a="comecar">Começar</button>
+    <p class="dica">Entra no ${bimAtual()}º bimestre. Para trocar, vá em Salas → Notas para a SED.</p></div>`;
+}
+
+function telaCaptura(){
+  const at = atividade(V.atv), s = SALAS.find(x=>x.id===at.salaId);
+  const alunos = ALUNOS.filter(a=>a.turma===s.turma);
+  const regs = S.registros.filter(r=>r.atividadeId===at.id);
+  const feitos = regs.filter(r=>r.status!=="não entregue").length;
+  return `<div class="captura">
+    <div class="faixa"><strong>${esc(at.titulo)}</strong>
+      <span>${NOME_TURMA[s.turma]} · ${s.disc}</span>
+      <span class="prog">${feitos} de ${alunos.length} fotografados</span>
+      <button class="ajustes" data-a="ajustes">ajustar ou apagar esta atividade</button></div>
+    <div class="grade3">${alunos.map(a=>{ const r = regs.find(x=>x.alunoId===a.id);
+      const cls = r ? (r.status==="não entregue" ? "falta" : "ok") : "";
+      const rot = !r ? "" : r.status==="não entregue" ? '<span class="pgs falta">não entregou</span>'
+        : r.status==="atrasado" ? `<span class="pgs atr">atrasado · ${r.fotos.length}</span>`
+        : `<span class="pgs">${r.fotos.length} ${r.fotos.length===1?"foto":"fotos"}</span>`;
+      return `<div class="cel"><button class="toque ${cls}" data-a="foto" data-id="${a.id}">
+        <span class="num">${String(a.numero).padStart(2,"0")}</span>
+        <span class="curto">${esc(pnome(a.nome))}</span>${rot}</button>
+        ${r && r.fotos && r.fotos.length ? `<button class="olho" data-a="ver" data-id="${r.id}">ver</button>` : ""}</div>`;}).join("")}</div>
+    <button class="principal" data-a="encerrar">Encerrar e corrigir</button>
+    <p class="dica">Toque de novo no mesmo aluno para somar páginas. Um texto de 5 folhas vira 5 fotos no mesmo registro.</p></div>`;
+}
+
+function telaCorrigir(){
+  const p = pendentes();
+  if (!p.length) return `<div class="vazio"><p>Nada esperando nota.</p><span>O que você fotografar aparece aqui.</span></div>`;
+  const g = {}; p.forEach(r => (g[r.atividadeId] = g[r.atividadeId]||[]).push(r));
+  return `<div class="lista">${Object.entries(g).map(([id,rs])=>{ const at = atividade(id);
+    const s = SALAS.find(x=>x.id===at.salaId);
+    return `<button class="fila" data-a="pilha" data-id="${id}"><span class="txt"><b>${esc(at.titulo)}</b>
+      <em>${NOME_TURMA[s.turma]} · ${s.disc} · ${dCurta(at.data)}</em></span>
+      <span class="contador">${rs.length}</span></button>`;}).join("")}
+    <p class="dica">Um toque no número dá a nota e já pula para o próximo aluno.</p></div>`;
+}
+
+function telaPilha(){
+  const id = V.fila[V.i];
+  const r = id && S.registros.find(x=>x.id===id);
+  if (!r) return `<div class="vazio"><p>Acabou.</p><span>Todas as fotos desta pilha receberam nota.</span>
+    <button class="principal" data-a="fim">Voltar</button></div>`;
+  const at = atividade(r.atividadeId), a = achar(r.alunoId), pg = V.pg||0;
+  return `<div id="pilha"><div class="visor">
+      ${r.fotos.length ? `<img data-foto="${r.fotos[Math.min(pg,r.fotos.length-1)]}" alt="" data-a="ver" data-id="${r.id}">` : `<div class="pauta"></div>`}
+      ${r.fotos.length>1 ? `<div class="paginas">${r.fotos.map((_,i)=>
+        `<button class="${i===pg?"on":""}" data-a="pg" data-id="${i}">${i+1}</button>`).join("")}</div>`:""}
+      <div class="selo-aluno"><b>${esc(a.nome)}</b>
+        <span>nº ${String(a.numero||0).padStart(2,"0")} · ${esc(at.titulo)}</span>
+        ${r.status==="atrasado"?`<span class="atraso">atrasado${at.desconto?" · −"+vg(at.desconto)+" automático":""}</span>`:""}</div></div>
+    <div class="rodape-nota"><div class="contagem">${V.i+1} de ${V.fila.length}</div>
+      <div class="teclado">${[0,1,2,3,4,5,6,7,8,9,10].map(n=>`<button data-a="nota" data-id="${n}">${n}</button>`).join("")}
+        <button class="meio ${V.meio?"on":""}" data-a="meio">+0,5</button></div></div></div>`;
+}
+
+function telaAtividade(){
+  const at = atividade(V.atv);
+  if (!at) return `<div class="vazio"><p>Atividade não encontrada.</p></div>`;
+  const s = SALAS.find(x=>x.id===at.salaId);
+  const regs = S.registros.filter(r=>r.atividadeId===at.id);
+  const fotos = regs.reduce((n,r)=>n+(r.fotos?r.fotos.length:0),0);
+  const irmas = SALAS.filter(x => x.turma === s.turma && x.id !== s.id);
+  const desc = at.desconto || 0;
+  return `<div class="form">
+    <label>Nome da atividade</label>
+    <div class="juntos"><input id="renomear" value="${esc(at.titulo)}"><button class="add" data-a="renomear">✓</button></div>
+    <label>Sala</label>
+    <div class="caixa"><span class="chip largo on"><b>${NOME_TURMA[s.turma]} — ${s.disc}</b></span>
+      ${irmas.map(o=>`<button class="chip largo" data-a="mover" data-id="${o.id}"><b>Mover para ${o.disc}</b>
+        <span class="tag ${o.sigla==="ING"?"ing":"oe"}">${o.sigla}</span></button>`).join("")}
+      <span class="nada">Só aparecem salas da mesma turma, senão as entregas ficariam sem dono. As ${fotos} fotos vão junto.</span></div>
+    <label>Ritmo</label>
+    <div class="chips">
+      <button class="chip ${at.ritmo==="prazo"?"on":""}" data-a="atritmo" data-id="prazo">Prazo único</button>
+      <button class="chip ${at.ritmo==="proprio"?"on":""}" data-a="atritmo" data-id="proprio">Ritmo próprio</button></div>
+    ${at.ritmo==="prazo"?`<label>Desconto por atraso</label><div class="chips">
+      ${[0,0.5,1,2].map(d=>`<button class="chip ${desc===d?"on":""}" data-a="atdesc" data-id="${d}">${d===0?"sem desconto":"−"+vg(d)}</button>`).join("")}
+      </div><p class="dica">O desconto vale para quem entregar depois de você encerrar a turma.</p>`:""}
+    <label>Bimestre</label>
+    <div class="chips">
+      ${[1,2,3,4].map(b=>`<button class="chip ${bimDe(at)===b?"on":""}" data-a="atbim" data-id="${b}">${b}º</button>`).join("")}</div>
+    <label>Apagar</label>
+    <div class="caixa"><button class="chip largo perigo" data-a="apagarat"><b>Apagar esta atividade</b>
+      <span class="sub">${regs.length} entregas · ${fotos} fotos</span></button>
+      <span class="nada">${fotos ? "As fotos vão junto e não voltam. Se foi só a sala que errou, use Mover ali em cima." : "Esta atividade está vazia — pode apagar sem perder nada."}</span></div>
+  </div>`;
+}
+
+function telaVisor(){
+  const r = S.registros.find(x => x.id === V.visor.reg);
+  if (!r || !r.fotos.length) return "";
+  const i = Math.min(V.visor.i || 0, r.fotos.length - 1);
+  const a = achar(r.alunoId), at = atividade(r.atividadeId);
+  return `<div id="visor-cheio">
+    <div class="barra-visor"><button data-a="fechavisor">✕</button>
+      <span>${esc(a.nome)}${at?" · "+esc(at.titulo):""}</span></div>
+    <img data-foto="${r.fotos[i]}" alt="">
+    <div class="baixo-visor">
+      ${r.fotos.length>1?`<div class="pgs-visor">${r.fotos.map((_,k)=>
+        `<button class="${k===i?"on":""}" data-a="visorpg" data-id="${k}">${k+1}</button>`).join("")}</div>`:""}
+      <button class="perigo-btn" data-a="apagarfoto" data-id="${r.fotos[i]}">apagar esta foto</button>
+    </div></div>`;
+}
+
+function telaPerfil(){
+  const a = achar(V.aluno);
+  const regs = S.registros.filter(r=>r.alunoId===a.id).sort((x,y)=> x.criadoEm<y.criadoEm?1:-1);
+  const ns = regs.map(r=> r.status==="não entregue" ? 0 : finalDe(r)).filter(n=>n!=null);
+  const media = ns.length ? (ns.reduce((p,c)=>p+c,0)/ns.length).toFixed(1).replace(".",",") : "—";
+  const faltas = regs.filter(r=>r.status==="não entregue").length;
+  const daTurma = S.atividades.filter(at => { const s=SALAS.find(x=>x.id===at.salaId); return s && s.turma===a.turma; }).slice(-8).reverse();
+  const linha = r => { const at = atividade(r.atividadeId), s = at && SALAS.find(x=>x.id===at.salaId);
+    const dir = r.status==="não entregue" ? '<span class="selo falta">não entregou</span>'
+      : r.nota!=null ? `<span class="nota">${vg(finalDe(r))}</span>` : '<span class="selo esperando">sem nota</span>';
+    return `<li><button class="mini" ${r.fotos&&r.fotos.length?`data-a="ver" data-id="${r.id}"`:""}>${r.fotos&&r.fotos.length?`<img data-foto="${r.fotos[0]}" alt="">`:'<span class="pauta"></span>'}</button>
+      <span class="txt"><b>${at?esc(at.titulo):"Atividade"}</b>
+      <em>${dCurta(r.criadoEm)} · ${s?s.sigla:""}${r.fotos&&r.fotos.length>1?" · "+r.fotos.length+" páginas":""}${
+        r.status==="atrasado"?" · atrasado"+(at&&at.desconto?" −"+vg(at.desconto):""):""}</em></span>${dir}</li>`; };
+  const mural = r => { const at = atividade(r.atividadeId);
+    return `<figure class="${r.status==="não entregue"?"fora":""}"><button class="quadro" ${r.fotos&&r.fotos.length?`data-a="ver" data-id="${r.id}"`:""}>
+      ${r.fotos&&r.fotos.length?`<img data-foto="${r.fotos[0]}" alt="">`:'<span class="pauta"></span>'}</button>
+      <figcaption><b>${dCurta(r.criadoEm)}</b><em>${r.status==="não entregue"?"não entregou":(at?esc(at.titulo):"")}</em></figcaption></figure>`; };
+  return `<div class="perfil">
+    <div class="capa"><span class="av g">${inic(a.nome)}</span>
+      <div><strong>${esc(a.nome)}</strong><span>${NOME_TURMA[a.turma]||""}${a.numero?" · nº "+String(a.numero).padStart(2,"0"):""}${a.saiuEm?" · saiu em "+dCurta(a.saiuEm):""}</span></div></div>
+    <div class="numeros"><div><b>${media}</b><span>média</span></div>
+      <div><b>${regs.length}</b><span>atividades</span></div>
+      <div class="${faltas?"alerta":""}"><b>${faltas}</b><span>não entregues</span></div></div>
+    <div class="duplo"><button class="modo ${V.reuniao?"on":""}" data-a="reuniao">${V.reuniao?"voltar à lista":"modo reunião"}</button>
+      <button class="modo" data-a="entrega">+ entrega</button></div>
+    ${V.entrega?`<div class="caixa"><p>Em qual atividade entrou a entrega dele?</p>
+      ${daTurma.length?daTurma.map(at=>{ const s=SALAS.find(x=>x.id===at.salaId);
+        return `<button class="chip largo" data-a="fotoavulsa" data-id="${at.id}"><b>${esc(at.titulo)}</b>
+          <span class="tag ${s.sigla==="ING"?"ing":"oe"}">${s.sigla}</span></button>`;}).join("")
+        :'<span class="nada">Nenhuma atividade criada para esta turma ainda.</span>'}</div>`:""}
+    ${!regs.length?'<div class="vazio"><p>Nenhum registro ainda.</p></div>':
+      (V.reuniao ? `<div class="mural">${regs.map(mural).join("")}</div>`
+                 : `<ol class="timeline">${regs.map(linha).join("")}</ol>`)}</div>`;
+}
+
+function telaSED(){
+  const bim = bimAtual(), salas = notasSED(bim), aberta = V.sedAberta;
+  const lista = (g, k) => g[k].map(a => esc(a.titulo)).join(", ");
+  return `<div class="lista">
+    <label style="margin-top:0">Bimestre</label>
+    <div class="chips">${[1,2,3,4].map(b=>`<button class="chip ${bim===b?"on":""}" data-a="bimatual" data-id="${b}">${b}º</button>`).join("")}</div>
+    <p class="dica">As atividades novas entram no bimestre marcado aqui.</p>
+    ${salas.length ? `<div class="caixa" style="margin-top:14px">
+      <button class="chip largo on" data-a="enviarsed"><b>Enviar código para o PC</b><span class="sub">WhatsApp, e-mail…</span></button>
+      <button class="chip largo" data-a="copiarsed"><b>Copiar código</b><span class="sub">todas as salas de OE</span></button>
+      <span class="nada">No PC, abra a tela de notas da avaliação na SED, clique no favorito <b>Lançar notas</b> e cole. O código serve para todas as turmas: cole uma vez e depois é só clicar em cada tela.</span></div>`
+    : `<div class="vazio"><p>Nenhuma atividade de OE no ${bim}º bimestre.</p></div>`}
+    ${salas.map(({s, grupo, alunos}) => `
+      <button class="ativ" data-a="sedsala" data-id="${s.id}">
+        <span class="txt"><b>${NOME_TURMA[s.turma]}</b>
+          <em>${grupo.m.length ? `Missões (${grupo.m.length}): ${lista(grupo,"m")}<br>` : ""}${grupo.p.length ? `Produções (${grupo.p.length}): ${lista(grupo,"p")}` : ""}</em></span>
+        <span class="frac"><i>${aberta===s.id?"fechar":"ver notas"}</i></span></button>
+      ${aberta===s.id ? `<div style="margin:-2px 0 12px">
+        <div class="linha" style="font-size:10px;font-weight:700;color:var(--cinza);text-transform:uppercase;letter-spacing:.6px">
+          <span class="parte" style="padding:6px 4px">aluno</span>
+          ${grupo.m.length?'<span style="width:44px;text-align:center">miss.</span>':""}${grupo.p.length?'<span style="width:44px;text-align:center">prod.</span>':""}</div>
+        ${alunos.map(({a, n}) => `<div class="linha">
+          <span class="parte"><span class="num">${String(a.numero).padStart(2,"0")}</span><span class="nome">${esc(a.nome)}</span></span>
+          ${["m","p"].filter(k=>grupo[k].length).map(k=>`<span class="media${n[k]===0?" zero":""}" style="width:44px;text-align:center">${n[k]}</span>`).join("")}</div>`).join("")}
+      </div>` : ""}`).join("")}
+    <p class="dica">Tem foto = fez. Cada atividade vale 10 dividido pelo total da sala naquele grupo. Abaixo de ,8 arredonda para baixo. No 6º tudo conta como produção; Jovem CAS o favorito preenche com 10 sozinho.</p>
+  </div>`;
+}
+
+/* ============ render ============ */
+function render(){
+  let html, titulo, temVoltar = true, acao = null;
+  if (V.tela==="pilha") { titulo = "Corrigindo"; html = telaPilha(); }
+  else if (V.tela==="sed") { titulo = "Notas para a SED"; html = telaSED(); }
+  else if (V.tela==="atv") { titulo = "Ajustar atividade"; html = telaAtividade(); }
+  else if (V.tela==="rel") { titulo = "Relatório"; html = telaRelatorio(); }
+  else if (V.tela==="perfil") { titulo = pnome(achar(V.aluno).nome); html = telaPerfil(); }
+  else if (V.tela==="captura") { titulo = "Fotografando"; html = telaCaptura(); }
+  else if (V.tela==="sala") { const s = SALAS.find(x=>x.id===V.sala); titulo = NOME_TURMA[s.turma]+" · "+s.sigla; html = telaSala(); }
+  else { temVoltar = false;
+    if (V.aba==="salas") { titulo = "Minhas salas"; html = telaSalas(); }
+    else if (V.aba==="registrar") { titulo = "Fotografar atividade"; html = telaRegistrar(); }
+    else if (V.aba==="devendo") { titulo = "Quem está devendo"; html = telaDevendo(); }
+    else { titulo = "Corrigir"; html = telaCorrigir(); } }
+
+  $("#titulo").textContent = titulo;
+  $("#btVoltar").hidden = !temVoltar;
+  $("#marca").hidden = temVoltar;
+  $("#btAcao").hidden = true;
+  $("#app").innerHTML = html + (V.visor ? telaVisor() : "");
+  const p = pendentes().length;
+  $("#nav").hidden = temVoltar;
+  $("#nav").innerHTML = temVoltar ? "" : [["salas","Salas",0],["registrar","Fotografar",0],["corrigir","Corrigir",p],["devendo","Devendo",0]]
+    .map(([k,r,b])=>`<button data-a="aba" data-id="${k}" class="${V.aba===k?"on":""}">${r}${b?`<em>${b}</em>`:""}</button>`).join("");
+  pintarFotos();
+}
+
+/* ============ eventos ============ */
+$("#btVoltar").onclick = () => {
+  if (V.visor) return ir({visor:null});
+  if (V.tela==="rel") ir({tela:"sala", abaSala:"atividades"});
+  else if (V.tela==="atv") ir({tela: V.atv && S.registros.some(r=>r.atividadeId===V.atv) ? "captura" : null, aba:"registrar"});
+  else if (V.tela==="pilha") ir({tela:null, aba:"corrigir"});
+  else if (V.tela==="perfil") ir({tela:"sala", entrega:false, reuniao:false});
+  else if (V.tela==="captura") ir({tela:null, aba:"salas"});
+  else ir({tela:null, editando:false});
+};
+document.addEventListener("click", e => {
+  const b = e.target.closest("[data-a]"); if (!b) return;
+  const id = b.dataset.id;
+  switch (b.dataset.a) {
+    case "aba": ir({aba:id, novaSala:null}); break;
+    case "sala": ir({tela:"sala", sala:id, editando:false}); break;
+    case "perfil": ir({tela:"perfil", aluno:id, reuniao:false, entrega:false}); break;
+    case "editar": ir({editando:!V.editando}); break;
+    case "addaluno": { const n = $("#novoNome").value.trim();
+      if (n) { S.extras.push({id:"nv"+Date.now(), nome:n.toUpperCase(), turma:SALAS.find(x=>x.id===V.sala).turma});
+        montarElenco(); salvar(); aviso("Aluno adicionado. A chamada foi renumerada."); render(); } break; }
+    case "saiu": { if (S.saidas[id]) delete S.saidas[id]; else S.saidas[id] = hoje();
+      montarElenco(); salvar(); render(); break; }
+    case "escolhesala": ir({novaSala:id, ritmo:null, desc:null}); break;
+    case "trocasala": ir({novaSala:null}); break;
+    case "ritmo": ir({ritmo:id, titulo:$("#tituloAt")?$("#tituloAt").value:""}); break;
+    case "desc": ir({desc:parseFloat(id), titulo:$("#tituloAt")?$("#tituloAt").value:""}); break;
+    case "continuar": ir({tela:"captura", atv:id}); break;
+    case "comecar": { const s = SALAS.find(x=>x.id===V.novaSala);
+      const ritmo = V.ritmo || (s.sigla==="OE"?"proprio":"prazo");
+      const at = {id:"a"+Date.now(), salaId:V.novaSala, titulo:($("#tituloAt").value.trim()||"Atividade"),
+        data:hoje(), ritmo, desconto: ritmo==="prazo" ? (V.desc==null?1:V.desc) : 0, encerrada:false, bim:bimAtual()};
+      S.atividades.push(at); salvar(); ir({tela:"captura", atv:at.id, titulo:""}); break; }
+    case "foto": pedirFoto(V.atv, id); break;
+    case "fotoavulsa": pedirFoto(id, V.aluno); break;
+    case "encerrar": encerrar(V.atv); break;
+    case "pilha": ir({tela:"pilha", fila:pendentes().filter(r=>r.atividadeId===id).map(r=>r.id), i:0, pg:0}); break;
+    case "nota": { const n = Math.min(10, parseInt(id) + (V.meio?0.5:0));
+      const r = S.registros.find(x=>x.id===V.fila[V.i]); darNota(r.id, n); V.meio=false; V.pg=0; break; }
+    case "meio": ir({meio:!V.meio}); break;
+    case "pg": ir({pg:parseInt(id)}); break;
+    case "fim": ir({tela:null, aba:"salas"}); break;
+    case "reuniao": ir({reuniao:!V.reuniao, entrega:false}); break;
+    case "entrega": ir({entrega:!V.entrega}); break;
+    case "abasala": ir({abaSala:id, resumo:false, editando:false}); break;
+    case "resumo": ir({resumo:!V.resumo}); break;
+    case "relatorio": ir({tela:"rel", rel:id}); break;
+    case "fotorel": pedirFoto(V.rel, id); break;
+    case "copiarfalta": { const at = atividade(V.rel), s = SALAS.find(x=>x.id===at.salaId);
+      const b = balanco(at.id, s.turma);
+      const txt = at.titulo+" — "+NOME_TURMA[s.turma]+" ("+s.disc+")\nFalta entregar ("+b.faltam.length+"):\n"
+        + b.faltam.map(a=>String(a.numero).padStart(2,"0")+" - "+a.nome).join("\n");
+      if (navigator.clipboard) navigator.clipboard.writeText(txt).then(()=>aviso("Lista copiada."), ()=>aviso("Não consegui copiar."));
+      else aviso("Não consegui copiar.");
+      break; }
+    case "csvativ": { const at = atividade(V.rel), s = SALAS.find(x=>x.id===at.salaId);
+      const b = balanco(at.id, s.turma);
+      const l = [["Nº","Aluno","Situação","Data da entrega","Fotos","Nota"]];
+      b.entregaram.forEach(({r,a}) => l.push([a.numero, a.nome, r.status, dCurta(r.criadoEm), r.fotos.length, r.nota==null?"":vg(finalDe(r))]));
+      b.faltam.forEach(a => l.push([a.numero, a.nome, "não entregou", "", 0, ""]));
+      baixar(at.titulo.replace(/[^\wÀ-ÿ -]/g,"")+"_"+s.turma+".csv",
+        "\uFEFF"+l.map(x=>x.map(c=>'"'+String(c).replace(/"/g,'""')+'"').join(";")).join("\n"), "text/csv");
+      aviso("Planilha desta atividade salva."); break; }
+    case "ver": ir({visor:{reg:id, i:0}}); break;
+    case "fechavisor": ir({visor:null}); break;
+    case "visorpg": ir({visor:{...V.visor, i:parseInt(id)}}); break;
+    case "apagarfoto": if (confirm("Apagar esta foto? Não tem como desfazer.")) apagarFoto(V.visor.reg, id); break;
+    case "ajustar": ir({tela:"atv", atv:id}); break;
+    case "ajustes": ir({tela:"atv", atv:V.atv}); break;
+    case "renomear": { const t = $("#renomear").value.trim();
+      if (t) { atividade(V.atv).titulo = t; salvar(); aviso("Nome trocado."); render(); } break; }
+    case "mover": { const at = atividade(V.atv); at.salaId = id; salvar();
+      aviso("Atividade movida com as fotos."); render(); break; }
+    case "atritmo": { const at = atividade(V.atv); at.ritmo = id;
+      if (id === "proprio") at.desconto = 0; else if (at.desconto == null) at.desconto = 1;
+      salvar(); render(); break; }
+    case "atdesc": { atividade(V.atv).desconto = parseFloat(id); salvar(); render(); break; }
+    case "apagarat": { const at = atividade(V.atv);
+      const n = S.registros.filter(r=>r.atividadeId===at.id).reduce((s,r)=>s+(r.fotos?r.fotos.length:0),0);
+      if (confirm(n ? `Apagar "${at.titulo}" e as ${n} fotos dela? Não tem como desfazer.` : `Apagar "${at.titulo}"?`)) apagarAtividade(at.id);
+      break; }
+    case "corte": ir({corte:parseInt(id)}); break;
+    case "filtrodisc": ir({disc:id}); break;
+    case "copiardev": { const corte = V.corte==null?0:V.corte, filtro = V.disc||"todas";
+      const partes = [];
+      SALAS.filter(s => (filtro==="todas"||s.sigla===filtro) && S.atividades.some(a=>a.salaId===s.id)).forEach(s => {
+        const ats = S.atividades.filter(a=>a.salaId===s.id);
+        const linhas = ALUNOS.filter(a=>a.turma===s.turma).map(a => ({a, n: ats.filter(at =>
+          S.registros.some(r=>r.atividadeId===at.id && r.alunoId===a.id && r.fotos && r.fotos.length)).length}))
+          .filter(x=>x.n<=corte).sort((x,y)=>x.n-y.n||x.a.numero-y.a.numero);
+        if (linhas.length) partes.push(NOME_TURMA[s.turma]+" - "+s.disc+" ("+ats.length+" atividades):\n"
+          + linhas.map(({a,n})=>String(a.numero).padStart(2,"0")+" - "+a.nome+" ("+n+")").join("\n"));
+      });
+      const txt = (corte===0?"Alunos sem nenhuma entrega":"Alunos com "+corte+" entrega(s) ou menos")+"\n\n"+partes.join("\n\n");
+      if (navigator.clipboard) navigator.clipboard.writeText(txt).then(()=>aviso("Lista copiada."), ()=>aviso("Não consegui copiar."));
+      else aviso("Não consegui copiar.");
+      break; }
+    case "sed": ir({tela:"sed", sedAberta:null}); break;
+    case "bimatual": S.bim = parseInt(id); salvar(); render(); break;
+    case "atbim": atividade(V.atv).bim = parseInt(id); salvar(); aviso("Bimestre trocado."); render(); break;
+    case "sedsala": ir({sedAberta: V.sedAberta===id ? null : id}); break;
+    case "copiarsed": {
+      if (navigator.clipboard) navigator.clipboard.writeText(codigoSED(bimAtual())).then(()=>aviso("Código copiado."), ()=>aviso("Não consegui copiar."));
+      else aviso("Não consegui copiar.");
+      break; }
+    case "enviarsed": { const txt = codigoSED(bimAtual());
+      if (navigator.share) navigator.share({text: txt}).catch(()=>{});
+      else if (navigator.clipboard) navigator.clipboard.writeText(txt).then(()=>aviso("Código copiado."));
+      break; }
+    case "csv": exportarCSV(); break;
+    case "tudo": exportarTudo(); break;
+    case "restaurar": restaurar(); break;
+  }
+});
+
+/* ============ partida ============ */
+function pedirSenha(){ return new Promise(res => {
+  $("#titulo").textContent = "Destravar nomes"; $("#nav").hidden = true;
+  $("#app").innerHTML = `<div class="form"><label style="margin-top:0">Senha dos nomes</label>
+    <input id="senha" type="password" autocomplete="off" placeholder="senha">
+    <button class="principal" id="btSenha">Destravar</button>
+    <p class="dica">Só nesta primeira vez. Os nomes dos alunos ficam cifrados no endereço público e, depois de destravados, ficam guardados só neste aparelho.</p></div>`;
+  const ir = async () => { const b = $("#btSenha"); b.disabled = true; b.textContent = "Destravando…";
+    try { const j = await decifrarNomes($("#senha").value); await bPut("kv","nomes", j); res(JSON.parse(j)); }
+    catch(e){ b.disabled = false; b.textContent = "Destravar"; aviso("Senha errada."); } };
+  $("#btSenha").onclick = ir; $("#senha").onkeydown = e => { if (e.key==="Enter") ir(); };
+}); }
+
+(async () => {
+  try { const bruto = await bGet("kv","estado"); if (bruto) Object.assign(S, JSON.parse(bruto)); } catch(e){}
+  let nomes = null;
+  try { const j = await bGet("kv","nomes"); if (j) nomes = JSON.parse(j); } catch(e){}
+  montarBase(nomes || await pedirSenha());
+  montarElenco();
+  if (navigator.storage && navigator.storage.persist) { try { await navigator.storage.persist(); } catch(e){} }
+  render();
+  if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js").catch(()=>{});
+})();
+</script>
+</body>
+</html>
