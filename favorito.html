@@ -39,17 +39,15 @@ b{font-weight:700}
 (()=>{
 const N=s=>String(s).normalize('NFD').replace(/[̀-ͯ]/g,'').toUpperCase().replace(/[^A-Z ]/g,' ').replace(/\s+/g,' ').trim();
 const corpo=document.body.innerText;
-const mt=corpo.match(/Turma:\s*(\d)\D{0,4}Ano\s+([A-Z])\b/i);
-if(!mt){alert('Não achei a turma nesta tela. Abra a tela de notas de uma avaliação na SED.');return;}
-const turma=mt[1]+mt[2].toUpperCase();
+if(!document.querySelector('#tableDiarioClasse')){alert('Abra a tela de notas de uma avaliação na SED (a que tem a coluna Nota).');return;}
 const nomeAv=((corpo.match(/Nome:\s*([^\n]+)/)||[])[1]||'').trim();
 const na=N(nomeAv);
 let cat=/JOVEM|\bCAS\b/.test(na)?'cas':na.includes('MISS')?'m':na.includes('PROD')?'p':null;
 if(!cat){const r=prompt('A avaliação "'+nomeAv+'" é de missões ou de produções? Digite m ou p:','');if(!r)return;cat=r.trim().toLowerCase()[0];if(cat!=='m'&&cat!=='p')return;}
 const rotulo=cat==='cas'?'Jovem CAS':cat==='m'?'missões':'produções';
-let notas=null;
+let d=null;
 if(cat!=='cas'){
-  const K='lancarNotasSED';let d=null;
+  const K='lancarNotasSED';
   try{d=JSON.parse(localStorage.getItem(K));}catch(e){}
   const ent=prompt(d?'Código de '+d.d+' ('+d.b+'º bimestre) já guardado.\nCole um novo, ou deixe vazio e dê OK para usar esse:':'Cole o código copiado do app Registro:','');
   if(ent===null)return;
@@ -58,36 +56,47 @@ if(cat!=='cas'){
   const bs=[...document.querySelectorAll('select')].find(s=>/Bimestre/.test(s.innerText));
   const bv=bs?parseInt(bs.value):0;
   if(bv&&bv!==d.b&&!confirm('Esta avaliação é do '+bv+'º bimestre, mas o código é do '+d.b+'º. Continuar mesmo assim?'))return;
-  const t=d.t[turma];
-  if(!t||!t[cat]){alert('O código não tem '+rotulo+' do '+turma[0]+'º '+turma[1]+'.'+(turma[0]==='6'&&cat==='m'?' No 6º tudo conta como produções.':''));return;}
-  notas=new Map(t.n.map((n,i)=>[N(n),t[cat][i]]));
 }
 const sel=document.querySelector('select[name$="_length"]');
 if(sel&&sel.value!=='100'){sel.value='100';sel.dispatchEvent(new Event('change',{bubbles:true}));}
 const busca=document.querySelector('.dt-search input');
 if(busca&&busca.value){busca.value='';busca.dispatchEvent(new Event('input',{bubbles:true}));}
 setTimeout(()=>{
+  const linhas=[];
+  document.querySelectorAll('#tableDiarioClasse tbody tr').forEach(tr=>{
+    const inp=tr.querySelector('input.nota,input[type=number]');if(!inp)return;
+    const cel=[...tr.cells].filter(c=>!c.contains(inp)).map(c=>c.innerText.trim()).filter(x=>/[A-Za-z]{3}/.test(x)&&!/^(Ativo|Inativo|Transferido|Remanejado)/i.test(x)).sort((a,b)=>b.length-a.length)[0];
+    if(cel)linhas.push({tr,inp,nome:cel,k:N(cel)});
+  });
+  let turma=null,notas=null;
+  if(cat!=='cas'){
+    /* a turma vem do cabeçalho quando a tela mostra; senão, pela turma do código que tem mais nomes iguais aos da tela */
+    const mt=corpo.match(/Turma:\s*(\d)\D{0,4}Ano\s+([A-Z])\b/i);
+    if(mt)turma=mt[1]+mt[2].toUpperCase();
+    else{let melhor=0;for(const [t,v] of Object.entries(d.t)){const ns=new Set(v.n.map(N));const c=linhas.filter(l=>ns.has(l.k)).length;if(c>melhor){melhor=c;turma=t;}}
+      if(!turma||melhor<linhas.length/2){alert('Não consegui descobrir a turma desta tela pelos nomes.');return;}}
+    const t=d.t[turma];
+    if(!t||!t[cat]){alert('O código não tem '+rotulo+' do '+turma[0]+'º '+turma[1]+'.'+(turma[0]==='6'&&cat==='m'?' No 6º tudo conta como produções.':''));return;}
+    notas=new Map(t.n.map((n,i)=>[N(n),t[cat][i]]));
+  }
   const set=Object.getOwnPropertyDescriptor(HTMLInputElement.prototype,'value').set;
   const chaves=notas?[...notas.keys()]:[];const usadas=new Set();
   const achar=n=>{if(notas.has(n))return n;const p=n.split(' ');const c=chaves.filter(k=>{const q=k.split(' ');return q[0]===p[0]&&q[q.length-1]===p[p.length-1];});return c.length===1?c[0]:null;};
   let ok=0;const falta=[];
-  document.querySelectorAll('#tableDiarioClasse tbody tr').forEach(tr=>{
-    const inp=tr.querySelector('input.nota,input[type=number]');if(!inp)return;
-    const cel=[...tr.cells].filter(c=>!c.contains(inp)).map(c=>c.innerText.trim()).filter(x=>/[A-Za-z]{3}/.test(x)&&!/^(Ativo|Inativo|Transferido|Remanejado)/i.test(x)).sort((a,b)=>b.length-a.length)[0];
-    if(!cel)return;
+  linhas.forEach(({tr,inp,nome,k})=>{
     let v;
-    if(cat==='cas')v=10;else{const k=achar(N(cel));if(k){usadas.add(k);v=notas.get(k);}}
-    if(v==null){tr.style.background='#FFF3B0';inp.style.background='#FFF3B0';falta.push(cel);return;}
+    if(cat==='cas')v=10;else{const a=achar(k);if(a){usadas.add(a);v=notas.get(a);}}
+    if(v==null){tr.style.background='#FFF3B0';inp.style.background='#FFF3B0';falta.push(nome);return;}
     inp.focus();set.call(inp,String(v));
     inp.dispatchEvent(new Event('input',{bubbles:true}));inp.dispatchEvent(new Event('change',{bubbles:true}));inp.blur();
     inp.style.background='#E3F6EA';ok++;
   });
   const sobra=chaves.filter(k=>!usadas.has(k));
-  alert(turma[0]+'º '+turma[1]+' · '+rotulo+'\n\n'+ok+' notas preenchidas (verde).'
+  alert((turma?turma[0]+'º '+turma[1]+' · ':'')+rotulo+'\n\n'+ok+' notas preenchidas (verde).'
     +(falta.length?'\n\nNão achei no app, ficaram em branco (amarelo):\n- '+falta.join('\n- '):'')
     +(notas&&sobra.length?'\n\nEstão no app mas não nesta tela:\n- '+sobra.join('\n- '):'')
     +'\n\nConfira e clique em Salvar Notas.');
-},500);
+},700);
 })();
 </script>
 <script>

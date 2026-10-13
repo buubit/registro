@@ -169,6 +169,9 @@ nav em{position:absolute;top:6px;right:16%;background:var(--caneta);color:#fff;f
 #aviso{position:fixed;left:16px;right:16px;bottom:84px;max-width:488px;margin:0 auto;background:var(--tinta);color:#fff;
   font-size:12.5px;padding:12px 14px;border-radius:10px;text-align:center;opacity:0;transition:opacity .2s;pointer-events:none;z-index:9}
 #aviso.ver{opacity:1}
+.dig{width:100%;display:flex;align-items:center;gap:10px;padding:9px 6px;background:none;border:none;border-bottom:1px solid var(--pauta);font:inherit;color:inherit;text-align:left}
+.dig .nome{font-size:12.5px}.dig b{font-size:24px;font-weight:800;width:44px;text-align:center;flex:0 0 auto}
+.dig b.zero{color:var(--caneta)}.dig.feito{opacity:.35}.dig.feito .nome{text-decoration:line-through}
 .pauta{position:absolute;inset:0;background-image:repeating-linear-gradient(transparent 0 11px,var(--pauta) 11px 12px)}
 </style>
 </head>
@@ -272,15 +275,6 @@ function notasSED(bim){
     });
     return {s, grupo, alunos};
   }).filter(x => x.grupo.m.length || x.grupo.p.length);
-}
-/* código que o favorito "Lançar notas" lê na SED: nomes uma vez, notas alinhadas */
-function codigoSED(bim){
-  const t = {};
-  notasSED(bim).forEach(({s, grupo, alunos}) => {
-    t[s.turma] = {n: alunos.map(x => x.a.nome)};
-    for (const k of ["m","p"]) if (grupo[k].length) t[s.turma][k] = alunos.map(x => x.n[k]);
-  });
-  return "SED1:" + JSON.stringify({b:bim, d:dCurta(hoje()), t});
 }
 
 /* fotos: blob no banco, URL só enquanto a tela está aberta */
@@ -766,24 +760,26 @@ function telaSED(){
     <div class="chips">${[1,2,3,4].map(b=>`<button class="chip ${bim===b?"on":""}" data-a="bimatual" data-id="${b}">${b}º</button>`).join("")}</div>
     <p class="dica">As atividades novas entram no bimestre marcado aqui.</p>
     ${salas.length ? `<div class="caixa" style="margin-top:14px">
-      <button class="chip largo on" data-a="enviarsed"><b>Enviar código para o PC</b><span class="sub">WhatsApp, e-mail…</span></button>
-      <button class="chip largo" data-a="copiarsed"><b>Copiar código</b><span class="sub">todas as salas de OE</span></button>
-      <span class="nada">No PC, abra a tela de notas da avaliação na SED, clique no favorito <b>Lançar notas</b> e cole. O código serve para todas as turmas: cole uma vez e depois é só clicar em cada tela.</span></div>`
+      <p><b>Na SED:</b> abra a tela de notas da avaliação, mude <b>Exibir</b> para 100 e clique no título <b>Nome</b> da tabela para ficar em ordem alfabética. Aí ela bate linha por linha com a lista daqui.</p>
+      <span class="nada">Clique na primeira caixa de nota e vá digitando o número e apertando <b>Tab</b>. Toque numa linha daqui para marcar até onde já digitou.</span></div>`
     : `<div class="vazio"><p>Nenhuma atividade de OE no ${bim}º bimestre.</p></div>`}
-    ${salas.map(({s, grupo, alunos}) => `
+    ${salas.map(({s, grupo, alunos}) => {
+      const cols = [...(grupo.m.length?[["m","Missões"]]:[]), ...(grupo.p.length?[["p","Produções"]]:[]), ...(s.turma[0]==="6"?[["cas","Jovem CAS"]]:[])];
+      const col = aberta===s.id && cols.some(c=>c[0]===V.sedCol) ? V.sedCol : cols[0][0];
+      const ate = V.sedAte==null ? -1 : V.sedAte;
+      return `
       <button class="ativ" data-a="sedsala" data-id="${s.id}">
         <span class="txt"><b>${NOME_TURMA[s.turma]}</b>
           <em>${grupo.m.length ? `Missões (${grupo.m.length}): ${lista(grupo,"m")}<br>` : ""}${grupo.p.length ? `Produções (${grupo.p.length}): ${lista(grupo,"p")}` : ""}</em></span>
-        <span class="frac"><i>${aberta===s.id?"fechar":"ver notas"}</i></span></button>
-      ${aberta===s.id ? `<div style="margin:-2px 0 12px">
-        <div class="linha" style="font-size:10px;font-weight:700;color:var(--cinza);text-transform:uppercase;letter-spacing:.6px">
-          <span class="parte" style="padding:6px 4px">aluno</span>
-          ${grupo.m.length?'<span style="width:44px;text-align:center">miss.</span>':""}${grupo.p.length?'<span style="width:44px;text-align:center">prod.</span>':""}</div>
-        ${alunos.map(({a, n}) => `<div class="linha">
-          <span class="parte"><span class="num">${String(a.numero).padStart(2,"0")}</span><span class="nome">${esc(a.nome)}</span></span>
-          ${["m","p"].filter(k=>grupo[k].length).map(k=>`<span class="media${n[k]===0?" zero":""}" style="width:44px;text-align:center">${n[k]}</span>`).join("")}</div>`).join("")}
-      </div>` : ""}`).join("")}
-    <p class="dica">Tem foto = fez. Cada atividade vale 10 dividido pelo total da sala naquele grupo. Abaixo de ,8 arredonda para baixo. No 6º tudo conta como produção; Jovem CAS o favorito preenche com 10 sozinho.</p>
+        <span class="frac"><i>${aberta===s.id?"fechar":"digitar"}</i></span></button>
+      ${aberta===s.id ? `<div style="margin:-2px 0 14px">
+        <div class="chips" style="margin:4px 0 10px">${cols.map(([k,r])=>`<button class="chip ${col===k?"on":""}" data-a="sedcol" data-id="${k}">${r}</button>`).join("")}</div>
+        ${alunos.map(({a, n}, i) => { const v = col==="cas" ? 10 : n[col];
+          return `<button class="dig${i<=ate?" feito":""}" data-a="sedate" data-id="${i}">
+            <span class="num">${i+1}</span><span class="nome">${esc(a.nome)}</span><b class="${v===0?"zero":""}">${v}</b></button>`; }).join("")}
+        <p class="dica">${alunos.length} alunos. Se a SED tiver alguém a mais ou a menos, os nomes ao lado mostram onde desencontrou.</p>
+      </div>` : ""}`; }).join("")}
+    <p class="dica">Tem foto = fez. Cada atividade vale 10 dividido pelo total da sala naquele grupo. Abaixo de ,8 arredonda para baixo. No 6º tudo conta como produção, e Jovem CAS é 10 para todos.</p>
   </div>`;
 }
 
@@ -915,15 +911,9 @@ document.addEventListener("click", e => {
     case "sed": ir({tela:"sed", sedAberta:null}); break;
     case "bimatual": S.bim = parseInt(id); salvar(); render(); break;
     case "atbim": atividade(V.atv).bim = parseInt(id); salvar(); aviso("Bimestre trocado."); render(); break;
-    case "sedsala": ir({sedAberta: V.sedAberta===id ? null : id}); break;
-    case "copiarsed": {
-      if (navigator.clipboard) navigator.clipboard.writeText(codigoSED(bimAtual())).then(()=>aviso("Código copiado."), ()=>aviso("Não consegui copiar."));
-      else aviso("Não consegui copiar.");
-      break; }
-    case "enviarsed": { const txt = codigoSED(bimAtual());
-      if (navigator.share) navigator.share({text: txt}).catch(()=>{});
-      else if (navigator.clipboard) navigator.clipboard.writeText(txt).then(()=>aviso("Código copiado."));
-      break; }
+    case "sedsala": ir({sedAberta: V.sedAberta===id ? null : id, sedCol:null, sedAte:null}); break;
+    case "sedcol": ir({sedCol:id, sedAte:null}); break;
+    case "sedate": { const i = parseInt(id); ir({sedAte: V.sedAte===i ? i-1 : i}); break; }
     case "csv": exportarCSV(); break;
     case "tudo": exportarTudo(); break;
     case "restaurar": restaurar(); break;
